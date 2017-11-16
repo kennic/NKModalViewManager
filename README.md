@@ -21,5 +21,5 @@ Example project provided in NKModalViewManagerExample folder.
 ## Requirements
 
 * iOS 8+
-* Objective-C, ARC
+* Objective-C or Swift, ARC
 * Xcode 7 and iOS 8+ SDK
