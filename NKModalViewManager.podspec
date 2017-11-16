@@ -30,6 +30,6 @@ Present UIViewController modally easily and beautifully with animation.
 
   s.ios.deployment_target = '8.0'
 
-  s.source_files = 'NKModalViewManager/*'
+  s.source_files = 'NKModalViewController/*'
   
 end
