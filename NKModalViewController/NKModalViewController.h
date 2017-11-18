@@ -15,6 +15,15 @@ extern NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS;
 
 extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post this notification to update size (after setting size in preferredContentSize)
 
+typedef enum NKModalTransitionStyle : NSUInteger {
+	NKModalTransitionFromBottom,
+	NKModalTransitionFromTop,
+	NKModalTransitionFromLeft,
+	NKModalTransitionFromRight,
+	NKModalTransitionZoomIn,
+	NKModalTransitionZoomOut,
+} NKModalTransitionStyle;
+
 @class NKModalViewController;
 @protocol NKModalViewControllerProtocol <NSObject>
 
@@ -24,18 +33,15 @@ extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post thi
 - (void) willExitModalViewController:(NKModalViewController*)sender;
 - (void) didExitModalViewController:(NKModalViewController*)sender;
 
-- (NSNumber*) shouldTapOutsideToDismissModalViewController:(NKModalViewController*)modalViewController withInterfaceOrientation:(UIInterfaceOrientation)orientation;
-- (NSNumber*) shouldAllowKeyboardShiftingForModalViewController:(NKModalViewController*)modalViewController;
-- (NSNumber*) edgeInsetsForModalViewController:(NKModalViewController*)modalViewController;
+- (BOOL) shouldTapOutsideToDismissModalViewController:(NKModalViewController*)modalViewController;
+- (BOOL) shouldAllowKeyboardShiftingForModalViewController:(NKModalViewController*)modalViewController;
+- (NKModalTransitionStyle) transitionStyleForModalViewController:(NKModalViewController*)modalViewController;
 
-- (NSNumber*) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
+- (NSTimeInterval) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
 - (UIColor*)  backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
-- (NSNumber*) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
-- (NSNumber*) backgroundScaleValueForModalViewController:(NKModalViewController*)modalViewController;
+- (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
 - (NSNumber*) cornerRadiusValueForModalViewController:(NKModalViewController*)modalViewController;
-
-- (UIView*)	  viewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
-- (NSNumber*) offsetForViewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
+- (UIView*) viewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
 
 - (CGRect) presentRectForModalViewController:(NKModalViewController*)modalViewController;
 - (CGRect) startRectForModalViewController:(NKModalViewController*)modalViewController; // target rect for start presenting, only used when animatedFromView is nil

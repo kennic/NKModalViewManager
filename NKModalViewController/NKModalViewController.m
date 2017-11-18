@@ -652,43 +652,71 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 }
 
 - (CGFloat) blurValue {
-	CGFloat blurValue = 0.0f;
-	UIViewController *activeViewController = [self currentContentViewController];
+	CGFloat value = 0.0f;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
 	
-	if (activeViewController && [activeViewController conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
-		if ([activeViewController respondsToSelector:@selector(backgroundBlurryValueForModalViewController:)]) {
-			id value = [activeViewController performSelector:@selector(backgroundBlurryValueForModalViewController:) withObject:self];
-			blurValue = [value floatValue];
-		}
-	}
-	else if ([_contentView conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
-		if ([_contentView respondsToSelector:@selector(backgroundBlurryValueForModalViewController:)]) {
-			id value = [_contentView performSelector:@selector(backgroundBlurryValueForModalViewController:) withObject:self];
-			blurValue = [value floatValue];
-		}
+	if ([target respondsToSelector:@selector(animateDurationForModalViewController:)]) {
+		value = [target backgroundBlurryValueForModalViewController:self];
 	}
 	
-	return blurValue;
+	return value;
 }
 
 - (NSTimeInterval) animateDuration {
-	NSTimeInterval timeValue = DEFAULT_ANIMATE_DURATION;
+	NSTimeInterval value = DEFAULT_ANIMATE_DURATION;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(animateDurationForModalViewController:)]) {
+		value = [target animateDurationForModalViewController:self];
+	}
+	
+	return value;
+}
+
+- (NKModalTransitionStyle) transitionStyle {
+	NKModalTransitionStyle value = NKModalTransitionFromBottom;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(transitionStyleForModalViewController:)]) {
+		value = [target transitionStyleForModalViewController:self];
+	}
+	
+	return value;
+}
+
+- (BOOL) allowKeyboardAvoiding {
+	BOOL value = YES;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(shouldAllowKeyboardShiftingForModalViewController:)]) {
+		value = [target shouldAllowKeyboardShiftingForModalViewController:self];
+	}
+	
+	return value;
+}
+
+- (BOOL) shouldTapOutsideToDismiss {
+	BOOL value = YES;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(shouldTapOutsideToDismissModalViewController:)]) {
+		value = [target shouldTapOutsideToDismissModalViewController:self];
+	}
+	
+	return value;
+}
+
+- (id<NKModalViewControllerProtocol>) protocolTarget {
 	UIViewController *activeViewController = [self currentContentViewController];
 	
 	if (activeViewController && [activeViewController conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
-		if ([activeViewController respondsToSelector:@selector(animateDurationForModalViewController:)]) {
-			id value = [activeViewController performSelector:@selector(animateDurationForModalViewController:) withObject:self];
-			timeValue = [value floatValue];
-		}
+		return (id<NKModalViewControllerProtocol>)activeViewController;
 	}
 	else if ([_contentView conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
-		if ([_contentView respondsToSelector:@selector(animateDurationForModalViewController:)]) {
-			id value = [_contentView performSelector:@selector(animateDurationForModalViewController:) withObject:self];
-			timeValue = [value floatValue];
-		}
+		return (id<NKModalViewControllerProtocol>)_contentView;
 	}
 	
-	return timeValue;
+	return nil;
 }
 
 
@@ -712,20 +740,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 - (BOOL) gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
 	if (touch.view==self.view) {
-		BOOL allowDismiss = self.tapOutsideToDismiss;
-		
-		id<NKModalViewControllerProtocol> target = nil;
-		UIViewController *currentViewController = [self currentContentViewController];
-		if ([currentViewController respondsToSelector:@selector(shouldTapOutsideToDismissModalViewController:withInterfaceOrientation:)]) {
-			target = (id<NKModalViewControllerProtocol>)currentViewController;
-		}
-		else if ([_contentView respondsToSelector:@selector(shouldTapOutsideToDismissModalViewController:withInterfaceOrientation:)]) {
-			target = (id<NKModalViewControllerProtocol>)_contentView;
-		}
-		
-		if (target) allowDismiss = self.tapOutsideToDismiss || [target shouldTapOutsideToDismissModalViewController:self withInterfaceOrientation:[UIApplication sharedApplication].statusBarOrientation];
-		
-		if (allowDismiss) {
+		if (self.tapOutsideToDismiss || [self shouldTapOutsideToDismiss]) {
 			[self dismissWithAnimated:YES completion:nil];
 			return NO;
 		}
