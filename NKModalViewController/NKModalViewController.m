@@ -755,7 +755,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	CGFloat value = 0.0f;
 	id<NKModalViewControllerProtocol> target = [self protocolTarget];
 	
-	if ([target respondsToSelector:@selector(animateDurationForModalViewController:)]) {
+	if ([target respondsToSelector:@selector(backgroundBlurryValueForModalViewController:)]) {
 		value = [target backgroundBlurryValueForModalViewController:self];
 	}
 	

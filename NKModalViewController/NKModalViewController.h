@@ -15,23 +15,23 @@ extern NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS;
 
 extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post this notification to update size (after setting size in preferredContentSize)
 
-typedef enum NKModalPresentingStyle : NSUInteger {
+typedef NS_ENUM(NSInteger, NKModalPresentingStyle) {
 	NKModalPresentingStyleFromBottom,
 	NKModalPresentingStyleFromTop,
 	NKModalPresentingStyleFromLeft,
 	NKModalPresentingStyleFromRight,
 	NKModalPresentingStyleZoomIn,
 	NKModalPresentingStyleZoomOut,
-} NKModalPresentingStyle;
+};
 
-typedef enum NKModalDismissingStyle : NSUInteger {
+typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 	NKModalDismissingStyleToBottom,
 	NKModalDismissingStyleToTop,
 	NKModalDismissingStyleToLeft,
 	NKModalDismissingStyleToRight,
 	NKModalDismissingStyleZoomIn,
 	NKModalDismissingStyleZoomOut,
-} NKModalDismissingStyle;
+};
 
 @class NKModalViewController;
 @protocol NKModalViewControllerProtocol <NSObject>
@@ -49,7 +49,7 @@ typedef enum NKModalDismissingStyle : NSUInteger {
 - (NKModalDismissingStyle) dismissingStyleForModalViewController:(NKModalViewController*)modalViewController;
 
 - (NSTimeInterval) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
-- (UIColor*)  backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
+- (UIColor*) backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
 - (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
 - (CGFloat) cornerRadiusValueForModalViewController:(NKModalViewController*)modalViewController;
 - (UIView*) viewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
