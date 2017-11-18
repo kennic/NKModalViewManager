@@ -15,14 +15,23 @@ extern NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS;
 
 extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post this notification to update size (after setting size in preferredContentSize)
 
-typedef enum NKModalTransitionStyle : NSUInteger {
-	NKModalTransitionFromBottom,
-	NKModalTransitionFromTop,
-	NKModalTransitionFromLeft,
-	NKModalTransitionFromRight,
-	NKModalTransitionZoomIn,
-	NKModalTransitionZoomOut,
-} NKModalTransitionStyle;
+typedef enum NKModalPresentingStyle : NSUInteger {
+	NKModalPresentingStyleFromBottom,
+	NKModalPresentingStyleFromTop,
+	NKModalPresentingStyleFromLeft,
+	NKModalPresentingStyleFromRight,
+	NKModalPresentingStyleZoomIn,
+	NKModalPresentingStyleZoomOut,
+} NKModalPresentingStyle;
+
+typedef enum NKModalDismissingStyle : NSUInteger {
+	NKModalDismissingStyleToBottom,
+	NKModalDismissingStyleToTop,
+	NKModalDismissingStyleToLeft,
+	NKModalDismissingStyleToRight,
+	NKModalDismissingStyleZoomIn,
+	NKModalDismissingStyleZoomOut,
+} NKModalDismissingStyle;
 
 @class NKModalViewController;
 @protocol NKModalViewControllerProtocol <NSObject>
@@ -35,7 +44,9 @@ typedef enum NKModalTransitionStyle : NSUInteger {
 
 - (BOOL) shouldTapOutsideToDismissModalViewController:(NKModalViewController*)modalViewController;
 - (BOOL) shouldAllowKeyboardShiftingForModalViewController:(NKModalViewController*)modalViewController;
-- (NKModalTransitionStyle) transitionStyleForModalViewController:(NKModalViewController*)modalViewController;
+
+- (NKModalPresentingStyle) presentingStyleForModalViewController:(NKModalViewController*)modalViewController;
+- (NKModalDismissingStyle) dismissingStyleForModalViewController:(NKModalViewController*)modalViewController;
 
 - (NSTimeInterval) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
 - (UIColor*)  backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
@@ -67,8 +78,8 @@ typedef enum NKModalTransitionStyle : NSUInteger {
 @property (nonatomic, assign) BOOL	enableKeyboardShifting;
 @property (nonatomic, assign) BOOL	tapOutsideToDismiss;
 @property (nonatomic, assign) BOOL	shouldUseChildViewControllerForStatusBarVisual; // set to YES to migrate preferredStatusBarStyle & prefersStatusBarHidden & preferredStatusBarUpdateAnimation from UINavigationController to its visible viewController
-@property (nonatomic, assign) NKModalTransitionStyle presentTransitionStyle;
-@property (nonatomic, assign) NKModalTransitionStyle dismissTransitionStyle;
+@property (nonatomic, assign) NKModalPresentingStyle presentingStyle;
+@property (nonatomic, assign) NKModalDismissingStyle dismissingStyle;
 
 @property (nonatomic, assign) id	delegate;
 @property (nonatomic, assign) SEL	onEnterModal;

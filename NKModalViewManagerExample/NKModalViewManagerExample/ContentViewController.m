@@ -91,7 +91,7 @@
 	return CGSizeMake(360, 280); // return CGSizeZero for fullScreen
 }
 
-
+/*
 // Uncomment these lines to show how it react to orientation changed
  
 - (UIStatusBarStyle) preferredStatusBarStyle {
@@ -113,7 +113,7 @@
 - (UIInterfaceOrientationMask) supportedInterfaceOrientations {
 	return UIInterfaceOrientationMaskLandscapeLeft;
 }
-
+*/
 
 
 #pragma mark - Events
@@ -144,6 +144,14 @@
 	label.text = @"Tap outside to dismiss";
 	label.textColor = [UIColor whiteColor];
 	return label;
+}
+
+- (NKModalPresentingStyle) presentingStyleForModalViewController:(NKModalViewController *)modalViewController {
+	return NKModalPresentingStyleZoomIn;
+}
+
+- (NKModalDismissingStyle) dismissingStyleForModalViewController:(NKModalViewController *)modalViewController {
+	return NKModalDismissingStyleZoomIn;
 }
 
 @end

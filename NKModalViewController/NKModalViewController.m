@@ -131,8 +131,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		self.tapOutsideToDismiss		= NO;
 		self.shouldUseChildViewControllerForStatusBarVisual = YES;
 		self.enableKeyboardShifting		= YES;
-		self.presentTransitionStyle		= NKModalTransitionFromBottom;
-		self.dismissTransitionStyle		= NKModalTransitionFromBottom;
+		self.presentingStyle			= NKModalPresentingStyleFromBottom;
+		self.dismissingStyle			= NKModalDismissingStyleToBottom;
 		
 		tapGesture	= [[UITapGestureRecognizer alloc] initWithTarget:nil action:nil];
 		tapGesture.delegate = self;
@@ -267,6 +267,20 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		if (capturedStartView) _startView.alpha = 0.0;
 		
+		CGAffineTransform transform = CGAffineTransformIdentity;
+		
+		NKModalPresentingStyle transitionStyle = [self presentStyleValue];
+		if (transitionStyle == NKModalPresentingStyleZoomIn) {
+			transform = CGAffineTransformMakeScale(0.8, 0.8);
+			_containerView.alpha = 0.0;
+		}
+		else if (transitionStyle == NKModalPresentingStyleZoomOut) {
+			transform = CGAffineTransformMakeScale(1.1, 1.1);
+			_containerView.alpha = 0.0;
+		}
+		
+		_containerView.transform = transform;
+		
 		[UIView animateWithDuration:[self animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			self.view.backgroundColor = _blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
 			_blurContainerView.alpha = 1.0;
@@ -275,9 +289,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				capturedStartView.transform = CGAffineTransformIdentity;
 				capturedContentView.transform = CGAffineTransformIdentity;
 			}
-			
 			_containerView.transform = CGAffineTransformIdentity;
 			_containerView.frame = _targetFrame;
+			_containerView.alpha = 1.0;
+			
 			_contentView.frame = _containerView.bounds;
 			
 			capturedStartView.frame = _targetFrame;
@@ -359,12 +374,25 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		self.view.backgroundColor = [UIColor clearColor];
 		_blurContainerView.alpha = 0.0;
 		
+		CGAffineTransform transform = CGAffineTransformIdentity;
+		
 		if (_startView) {
-			_contentView.alpha	= 0.0;
+			_contentView.alpha = 0.0;
 			
 			if (_needsRotating) {
-				capturedStartView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
-				_containerView.transform = capturedStartView.transform;
+				transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+				capturedStartView.transform = transform;
+			}
+		}
+		else {
+			NKModalDismissingStyle transitionStyle = [self dismissStyleValue];
+			if (transitionStyle == NKModalDismissingStyleZoomIn) {
+				transform = CGAffineTransformMakeScale(1.1, 1.1);
+				_containerView.alpha = 0.0;
+			}
+			else if (transitionStyle == NKModalDismissingStyleZoomOut) {
+				transform = CGAffineTransformMakeScale(0.8, 0.8);
+				_containerView.alpha = 0.0;
 			}
 		}
 		
@@ -373,6 +401,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		_containerView.frame = _startFrame;
 		_contentView.frame = _containerView.bounds;
+		_containerView.transform = transform;
 		
 		if (_bottomView) {
 			_bottomViewFrame.origin.y = self.view.bounds.size.height;
@@ -521,40 +550,66 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			return;
 		}
 		
-		NKModalTransitionStyle transitionStyle = _isPresenting ? _presentTransitionStyle : _dismissTransitionStyle;
-		if ([target respondsToSelector:@selector(transitionStyleForModalViewController:)]) {
-			transitionStyle = [target transitionStyleForModalViewController:self];
-		}
-		
 		CGSize viewSize = self.view.bounds.size;
 		CGSize contentSize = [self contentSize];
 		
-		switch (transitionStyle) {
-			case NKModalTransitionFromBottom:
-				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, viewSize.height, contentSize.width, contentSize.height);
-			break;
-				
-			case NKModalTransitionFromTop:
-				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, -contentSize.height, contentSize.width, contentSize.height);
-			break;
-
-			case NKModalTransitionFromLeft:
-				self.startFrame = CGRectMake(-contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
-			break;
-				
-			case NKModalTransitionFromRight:
-				self.startFrame = CGRectMake(contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
-			break;
-				
-			case NKModalTransitionZoomIn:
-				contentSize = CGSizeMake(contentSize.width * 0.8, contentSize.height * 0.8);
-				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
-			break;
-				
-			case NKModalTransitionZoomOut:
-				contentSize = CGSizeMake(contentSize.width * 1.2, contentSize.height * 1.2);
-				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
-			break;
+		if (_isPresenting) {
+			NKModalPresentingStyle transitionStyle = [self presentStyleValue];
+			
+			switch (transitionStyle) {
+					case NKModalPresentingStyleFromBottom:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, viewSize.height, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalPresentingStyleFromTop:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, -contentSize.height, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalPresentingStyleFromLeft:
+					self.startFrame = CGRectMake(-contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalPresentingStyleFromRight:
+					self.startFrame = CGRectMake(contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalPresentingStyleZoomIn:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalPresentingStyleZoomOut:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+			}
+		}
+		else if (_isDismissing) {
+			NKModalDismissingStyle transitionStyle = [self dismissingStyle];
+			
+			switch (transitionStyle) {
+					case NKModalDismissingStyleToBottom:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, viewSize.height, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalDismissingStyleToTop:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, -contentSize.height, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalDismissingStyleToLeft:
+					self.startFrame = CGRectMake(-contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalDismissingStyleToRight:
+					self.startFrame = CGRectMake(contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalDismissingStyleZoomIn:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+					
+					case NKModalDismissingStyleZoomOut:
+					self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+					break;
+			}
 		}
 		
 		self.needsUpdateStartFrameOnDismiss = YES;
@@ -706,12 +761,23 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	return value;
 }
 
-- (NKModalTransitionStyle) transitionStyle {
-	NKModalTransitionStyle value = NKModalTransitionFromBottom;
+- (NKModalPresentingStyle) presentStyleValue {
+	NKModalPresentingStyle value = _presentingStyle;
 	id<NKModalViewControllerProtocol> target = [self protocolTarget];
 	
-	if ([target respondsToSelector:@selector(transitionStyleForModalViewController:)]) {
-		value = [target transitionStyleForModalViewController:self];
+	if ([target respondsToSelector:@selector(presentingStyleForModalViewController:)]) {
+		value = [target presentingStyleForModalViewController:self];
+	}
+	
+	return value;
+}
+
+- (NKModalDismissingStyle) dismissStyleValue {
+	NKModalDismissingStyle value = _dismissingStyle;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(dismissingStyleForModalViewController:)]) {
+		value = [target dismissingStyleForModalViewController:self];
 	}
 	
 	return value;
