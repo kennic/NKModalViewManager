@@ -51,7 +51,7 @@ typedef enum NKModalDismissingStyle : NSUInteger {
 - (NSTimeInterval) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
 - (UIColor*)  backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
 - (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
-- (NSNumber*) cornerRadiusValueForModalViewController:(NKModalViewController*)modalViewController;
+- (CGFloat) cornerRadiusValueForModalViewController:(NKModalViewController*)modalViewController;
 - (UIView*) viewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
 
 - (CGRect) presentRectForModalViewController:(NKModalViewController*)modalViewController;

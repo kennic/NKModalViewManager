@@ -14,6 +14,7 @@ NSString * const MODAL_VIEW_CONTROLLER_WILL_DISMISS				= @"MODAL_VIEW_CONTROLLER
 NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_DID_DISMISS";
 
 #define DEFAULT_ANIMATE_DURATION 0.45f
+#define DEFAULT_CORNER_RADIUS_VALUE 8.0f
 #define DEGREES_TO_RADIANS(x) (M_PI * (x) / 180.0)
 
 @interface NKModalViewController ()
@@ -205,7 +206,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	[self updateStartFrame];
 	
-	float cornerRadius = [[self valueFromProtocolConformer:[self currentContentViewController] withSelector:@selector(cornerRadiusValueForModalViewController:) andObject:self andDefaultValue:@(8.0)] floatValue];
+	CGFloat cornerRadius = [self cornerRadiusValue];
 	_containerView.layer.cornerRadius = cornerRadius;
 	_containerView.layer.masksToBounds = cornerRadius>0.0;
 	
@@ -737,6 +738,17 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			_blurContainerView = nil;
 		}
 	}
+}
+
+- (CGFloat) cornerRadiusValue {
+	CGFloat value = DEFAULT_CORNER_RADIUS_VALUE;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(cornerRadiusValueForModalViewController:)]) {
+		value = [target cornerRadiusValueForModalViewController:self];
+	}
+	
+	return value;
 }
 
 - (CGFloat) blurValue {
