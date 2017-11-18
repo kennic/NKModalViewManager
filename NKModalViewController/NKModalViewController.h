@@ -67,6 +67,8 @@ typedef enum NKModalTransitionStyle : NSUInteger {
 @property (nonatomic, assign) BOOL	enableKeyboardShifting;
 @property (nonatomic, assign) BOOL	tapOutsideToDismiss;
 @property (nonatomic, assign) BOOL	shouldUseChildViewControllerForStatusBarVisual; // set to YES to migrate preferredStatusBarStyle & prefersStatusBarHidden & preferredStatusBarUpdateAnimation from UINavigationController to its visible viewController
+@property (nonatomic, assign) NKModalTransitionStyle presentTransitionStyle;
+@property (nonatomic, assign) NKModalTransitionStyle dismissTransitionStyle;
 
 @property (nonatomic, assign) id	delegate;
 @property (nonatomic, assign) SEL	onEnterModal;

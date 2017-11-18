@@ -131,6 +131,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		self.tapOutsideToDismiss		= NO;
 		self.shouldUseChildViewControllerForStatusBarVisual = YES;
 		self.enableKeyboardShifting		= YES;
+		self.presentTransitionStyle		= NKModalTransitionFromBottom;
+		self.dismissTransitionStyle		= NKModalTransitionFromBottom;
 		
 		tapGesture	= [[UITapGestureRecognizer alloc] initWithTarget:nil action:nil];
 		tapGesture.delegate = self;
@@ -512,18 +514,49 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		self.needsUpdateStartFrameOnDismiss = NO;
 	}
 	else {
-		UIViewController *target = [self currentContentViewController];
+		id<NKModalViewControllerProtocol> target = [self protocolTarget];
 		
-		if (target != nil) {
-			if ([target conformsToProtocol:@protocol(NKModalViewControllerProtocol)] && [target respondsToSelector:@selector(startRectForModalViewController:)]) {
-				self.startFrame = [((id<NKModalViewControllerProtocol>)target) startRectForModalViewController:self];
-				return;
-			}
+		if ([target respondsToSelector:@selector(startRectForModalViewController:)]) {
+			self.startFrame = [target startRectForModalViewController:self];
+			return;
+		}
+		
+		NKModalTransitionStyle transitionStyle = _isPresenting ? _presentTransitionStyle : _dismissTransitionStyle;
+		if ([target respondsToSelector:@selector(transitionStyleForModalViewController:)]) {
+			transitionStyle = [target transitionStyleForModalViewController:self];
 		}
 		
 		CGSize viewSize = self.view.bounds.size;
 		CGSize contentSize = [self contentSize];
-		self.startFrame = CGRectMake(roundf(viewSize.width/2 - contentSize.width/2), viewSize.height, contentSize.width, contentSize.height);
+		
+		switch (transitionStyle) {
+			case NKModalTransitionFromBottom:
+				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, viewSize.height, contentSize.width, contentSize.height);
+			break;
+				
+			case NKModalTransitionFromTop:
+				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, -contentSize.height, contentSize.width, contentSize.height);
+			break;
+
+			case NKModalTransitionFromLeft:
+				self.startFrame = CGRectMake(-contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+			break;
+				
+			case NKModalTransitionFromRight:
+				self.startFrame = CGRectMake(contentSize.width, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+			break;
+				
+			case NKModalTransitionZoomIn:
+				contentSize = CGSizeMake(contentSize.width * 0.8, contentSize.height * 0.8);
+				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+			break;
+				
+			case NKModalTransitionZoomOut:
+				contentSize = CGSizeMake(contentSize.width * 1.2, contentSize.height * 1.2);
+				self.startFrame = CGRectMake(roundf(viewSize.width - contentSize.width)/2, roundf(viewSize.height - contentSize.height)/2, contentSize.width, contentSize.height);
+			break;
+		}
+		
 		self.needsUpdateStartFrameOnDismiss = YES;
 	}
 }
