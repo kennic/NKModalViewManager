@@ -28,6 +28,7 @@ extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post thi
 - (NSNumber*) shouldAllowKeyboardShiftingForModalViewController:(NKModalViewController*)modalViewController;
 - (NSNumber*) edgeInsetsForModalViewController:(NKModalViewController*)modalViewController;
 
+- (NSNumber*) animateDurationForModalViewController:(NKModalViewController*)modalViewController;
 - (UIColor*)  backgroundColorForModalViewController:(NKModalViewController*)modalViewController;
 - (NSNumber*) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
 - (NSNumber*) backgroundScaleValueForModalViewController:(NKModalViewController*)modalViewController;
@@ -59,7 +60,6 @@ extern NSString * const MODAL_VIEW_CONTROLLER_SIZE_UPDATE_REQUESTED; // post thi
 
 @property (nonatomic, assign) BOOL	enableKeyboardShifting;
 @property (nonatomic, assign) BOOL	tapOutsideToDismiss;
-@property (nonatomic, assign) BOOL 	blurredBackgroundEnabled;
 @property (nonatomic, assign) BOOL	shouldUseChildViewControllerForStatusBarVisual; // set to YES to migrate preferredStatusBarStyle & prefersStatusBarHidden & preferredStatusBarUpdateAnimation from UINavigationController to its visible viewController
 
 @property (nonatomic, assign) id	delegate;

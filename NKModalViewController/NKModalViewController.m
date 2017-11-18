@@ -13,7 +13,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_PRESENT				= @"MODAL_VIEW_CONTROLLER_
 NSString * const MODAL_VIEW_CONTROLLER_WILL_DISMISS				= @"MODAL_VIEW_CONTROLLER_WILL_DISMISS";
 NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_DID_DISMISS";
 
-#define ANIMATE_DURATION 0.45f
+#define DEFAULT_ANIMATE_DURATION 0.45f
 #define DEGREES_TO_RADIANS(x) (M_PI * (x) / 180.0)
 
 @interface NKModalViewController ()
@@ -129,7 +129,6 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 - (id) init {
 	if ((self = [super initWithNibName:nil bundle:nil])) {
 		self.tapOutsideToDismiss		= NO;
-		self.blurredBackgroundEnabled	= YES;
 		self.shouldUseChildViewControllerForStatusBarVisual = YES;
 		self.enableKeyboardShifting		= YES;
 		
@@ -266,7 +265,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		if (capturedStartView) _startView.alpha = 0.0;
 		
-		[UIView animateWithDuration:ANIMATE_DURATION delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+		[UIView animateWithDuration:[self animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			self.view.backgroundColor = _blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
 			_blurContainerView.alpha = 1.0;
 			
@@ -340,12 +339,21 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		}
 	}
 	
+	UIViewController *target = [self currentContentViewController];
+	
+	if (target != nil) {
+		if ([target conformsToProtocol:@protocol(NKModalViewControllerProtocol)] && [target respondsToSelector:@selector(dismissRectForModalViewController:)]) {
+			self.startFrame = [((id<NKModalViewControllerProtocol>)target) dismissRectForModalViewController:self];
+			_needsUpdateStartFrameOnDismiss = NO;
+		}
+	}
+	
 	if (_needsUpdateStartFrameOnDismiss) [self updateStartFrame];
 	
 	_isDismissing	 = YES;
 	self.isAnimating = YES;
 	
-	[UIView animateWithDuration:animating ? ANIMATE_DURATION : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+	[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 		self.view.backgroundColor = [UIColor clearColor];
 		_blurContainerView.alpha = 0.0;
 		
@@ -414,7 +422,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	[self updateBottomViewFrame];
 	
 	if (animated) {
-		[UIView animateWithDuration:ANIMATE_DURATION delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState animations:^{
+		[UIView animateWithDuration:[self animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState animations:^{
 			_containerView.frame	= rect;
 			_contentView.frame		= _containerView.bounds;
 			_bottomView.frame		= _bottomViewFrame;
@@ -477,6 +485,13 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 }
 
 - (CGRect) targetContentFrame {
+	UIViewController *target = [self currentContentViewController];
+	
+	if ([target conformsToProtocol:@protocol(NKModalViewControllerProtocol)] && [target respondsToSelector:@selector(presentRectForModalViewController:)]) {
+		CGRect rect = [((id<NKModalViewControllerProtocol>)target) presentRectForModalViewController:self];
+		return rect;
+	}
+	
 	CGSize viewSize = self.view.bounds.size;
 	viewSize.height -= keyboardHeight;
 	
@@ -485,6 +500,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	return CGRectMake(roundf(viewSize.width/2 - contentSize.width/2), roundf(viewSize.height/2 - contentSize.height/2), contentSize.width, contentSize.height);
 }
+
 
 - (void) updateStartFrame {
 	if (_startView!=nil) {
@@ -496,6 +512,15 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		self.needsUpdateStartFrameOnDismiss = NO;
 	}
 	else {
+		UIViewController *target = [self currentContentViewController];
+		
+		if (target != nil) {
+			if ([target conformsToProtocol:@protocol(NKModalViewControllerProtocol)] && [target respondsToSelector:@selector(startRectForModalViewController:)]) {
+				self.startFrame = [((id<NKModalViewControllerProtocol>)target) startRectForModalViewController:self];
+				return;
+			}
+		}
+		
 		CGSize viewSize = self.view.bounds.size;
 		CGSize contentSize = [self contentSize];
 		self.startFrame = CGRectMake(roundf(viewSize.width/2 - contentSize.width/2), viewSize.height, contentSize.width, contentSize.height);
@@ -596,7 +621,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 - (void) setupBlurBackgroundImage {
 	CGFloat blurValue = [self blurValue];
 	
-	if ((blurValue>0 && self.blurredBackgroundEnabled)) {
+	if ((blurValue>0)) {
 		if (!_blurContainerView) {
 			self.blurContainerView = [UIView new];
 			_blurContainerView.userInteractionEnabled = NO;
@@ -644,6 +669,26 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	}
 	
 	return blurValue;
+}
+
+- (NSTimeInterval) animateDuration {
+	NSTimeInterval timeValue = DEFAULT_ANIMATE_DURATION;
+	UIViewController *activeViewController = [self currentContentViewController];
+	
+	if (activeViewController && [activeViewController conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
+		if ([activeViewController respondsToSelector:@selector(animateDurationForModalViewController:)]) {
+			id value = [activeViewController performSelector:@selector(animateDurationForModalViewController:) withObject:self];
+			timeValue = [value floatValue];
+		}
+	}
+	else if ([_contentView conformsToProtocol:@protocol(NKModalViewControllerProtocol)]) {
+		if ([_contentView respondsToSelector:@selector(animateDurationForModalViewController:)]) {
+			id value = [_contentView performSelector:@selector(animateDurationForModalViewController:) withObject:self];
+			timeValue = [value floatValue];
+		}
+	}
+	
+	return timeValue;
 }
 
 
