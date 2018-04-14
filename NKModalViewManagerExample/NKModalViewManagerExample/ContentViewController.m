@@ -33,6 +33,7 @@
 - (void) viewDidLoad {
     [super viewDidLoad];
 	
+	self.view.clipsToBounds = YES;
 	self.view.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5];
 	
 	imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background"]];
@@ -91,7 +92,7 @@
 	return CGSizeMake(360, 280); // return CGSizeZero for fullScreen
 }
 
-/*
+
 // Uncomment these lines to show how it react to orientation changed
  
 - (UIStatusBarStyle) preferredStatusBarStyle {
@@ -113,7 +114,7 @@
 - (UIInterfaceOrientationMask) supportedInterfaceOrientations {
 	return UIInterfaceOrientationMaskLandscapeLeft;
 }
-*/
+
 
 
 #pragma mark - Events

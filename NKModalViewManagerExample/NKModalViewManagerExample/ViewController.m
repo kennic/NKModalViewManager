@@ -18,6 +18,7 @@
 	UIImageView *bgImageView;
 	UIButton *button1;
 	UIButton *button2;
+	ContentViewController *testViewController;
 }
 
 #pragma mark -
@@ -25,9 +26,12 @@
 - (void) viewDidLoad {
 	[super viewDidLoad];
 	
+	testViewController = [ContentViewController new];
+	
 	bgImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"background"]];
 	bgImageView.contentMode = UIViewContentModeScaleAspectFill;
 	[self.view addSubview:bgImageView];
+	[self.view addSubview:testViewController.view];
 	
 	button1 = [self createButtonWithTitle:@"Animated from button"];
 	button2 = [self createButtonWithTitle:@"Show from bottom"];
@@ -46,6 +50,10 @@
 	
 	buttonFrame.origin.y += buttonFrame.size.height + 20;
 	button2.frame = buttonFrame;
+	
+	CGSize contentViewSize = [testViewController preferredContentSize];
+	testViewController.view.frame = CGRectMake((viewSize.width - contentViewSize.width)/2, 30, contentViewSize.width, contentViewSize.height);
+	[testViewController.view setNeedsLayout];
 }
 
 - (BOOL) shouldAutorotate {
@@ -77,7 +85,7 @@
 		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:sender].tapOutsideToDismiss = YES;
 	}
 	else if (sender==button2) {
-		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:nil].tapOutsideToDismiss = YES;
+		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].tapOutsideToDismiss = YES;
 	}
 }
 
