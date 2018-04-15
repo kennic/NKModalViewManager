@@ -223,7 +223,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		__weak typeof(self) weakSelf = self;
 		[presentingViewController presentViewController:self animated:NO completion:^{
 			if (weakSelf.needsRotating) {
-				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(self.targetOrientation==UIInterfaceOrientationLandscapeLeft ? 90 : -90));
+				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(weakSelf.targetOrientation==UIInterfaceOrientationLandscapeLeft ? 90 : -90));
 			}
 			
 			weakSelf.startFrame = [weakSelf.view convertRect:weakSelf.contentView.frame fromCoordinateSpace:weakSelf.contentView.superview];
@@ -241,6 +241,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				
 				weakSelf.containerView.transform = CGAffineTransformIdentity;
 				weakSelf.containerView.frame = weakSelf.targetFrame;
+				weakSelf.contentView.frame = weakSelf.containerView.bounds;
 				
 				if (weakSelf.bottomView) {
 					weakSelf.bottomView.alpha = 1.0;
@@ -415,14 +416,20 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	// --------
 	
 	if (self.lastSuperview) {
+		
+		
 		__weak typeof(self) weakSelf = self;
 		[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			weakSelf.view.backgroundColor = [UIColor clearColor];
 			weakSelf.blurContainerView.alpha = 0.0;
 			
+			if (_needsRotating) {
+				_containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+			}
+			
 			weakSelf.containerView.frame = weakSelf.startFrame;
 			weakSelf.contentView.frame = weakSelf.containerView.bounds;
-			weakSelf.containerView.transform = CGAffineTransformIdentity;
+//			weakSelf.containerView.transform = CGAffineTransformIdentity;
 			
 			if (weakSelf.bottomView) {
 				_bottomViewFrame.origin.y = weakSelf.view.bounds.size.height;
