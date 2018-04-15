@@ -34,6 +34,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 @property (nonatomic, strong) UIVisualEffectView *blurBackgroundView;
 @property (nonatomic, strong) UIView *blurContainerView;
 
+@property (nonatomic, assign) BOOL isPresenting;
+@property (nonatomic, assign) BOOL isDismissing;
 @property (nonatomic, assign) BOOL isAnimating;
 @property (nonatomic, assign) BOOL needsRotating;
 @property (nonatomic, assign) BOOL needsUpdateStartFrameOnDismiss;
@@ -248,7 +250,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 					weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 				}
 			} completion:^(BOOL finished) {
-				_isPresenting = NO;
+				weakSelf.isPresenting = NO;
 				weakSelf.isAnimating = NO;
 				[weakSelf.view setNeedsLayout];
 				
@@ -329,13 +331,13 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		weakSelf.containerView.frame = weakSelf.startFrame;
 		weakSelf.contentView.frame = weakSelf.containerView.bounds;
 		
-		capturedContentView.frame = _startFrame;
+		capturedContentView.frame = weakSelf.startFrame;
 		
 		[weakSelf setupBlurBackgroundImage];
 		
 		if (capturedStartView) {
 			weakSelf.startView.alpha = 0.0;
-			capturedStartView.frame = _startFrame;
+			capturedStartView.frame = weakSelf.startFrame;
 		}
 		
 		CGAffineTransform transform = CGAffineTransformIdentity;
@@ -382,7 +384,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 			}
 		} completion:^(BOOL finished) {
-			_isPresenting = NO;
+			weakSelf.isPresenting = NO;
 			weakSelf.isAnimating = NO;
 			[weakSelf.view setNeedsLayout];
 			
@@ -416,15 +418,13 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	// --------
 	
 	if (self.lastSuperview) {
-		
-		
 		__weak typeof(self) weakSelf = self;
 		[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			weakSelf.view.backgroundColor = [UIColor clearColor];
 			weakSelf.blurContainerView.alpha = 0.0;
 			
-			if (_needsRotating) {
-				_containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+			if (weakSelf.needsRotating) {
+				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([weakSelf rotationDegreesFromOrientation:weakSelf.lastOrientation toOrientation:weakSelf.targetOrientation]));
 			}
 			
 			weakSelf.containerView.frame = weakSelf.startFrame;
@@ -432,7 +432,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 //			weakSelf.containerView.transform = CGAffineTransformIdentity;
 			
 			if (weakSelf.bottomView) {
-				_bottomViewFrame.origin.y = weakSelf.view.bounds.size.height;
+				CGRect rect = weakSelf.bottomViewFrame;
+				rect.origin.y = weakSelf.view.bounds.size.height;
+				weakSelf.bottomViewFrame = rect;
+				
 				weakSelf.bottomView.alpha = 0.0;
 				weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 			}
@@ -448,17 +451,17 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			weakSelf.blurBackgroundView = nil;
 			
 			[weakSelf dismissViewControllerAnimated:NO completion:^{
-				_isDismissing = NO;
+				weakSelf.isDismissing = NO;
 				weakSelf.isAnimating = NO;
 				
-				if (_needsRotating) {
-					[weakSelf forceDeviceRotateToOrientation:_lastOrientation];
+				if (weakSelf.needsRotating) {
+					[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
 				}
 				
 				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didExitModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didExitModalViewController:) withObject:weakSelf];
 				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
 				if (completion) completion();
-				if (_exitModalBlock) _exitModalBlock(weakSelf);
+				if (weakSelf.exitModalBlock) weakSelf.exitModalBlock(weakSelf);
 			}];
 		}];
 		 
@@ -506,7 +509,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			weakSelf.contentView.alpha = 0.0;
 			
 			if (weakSelf.needsRotating) {
-				transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([weakSelf rotationDegreesFromOrientation:_lastOrientation toOrientation:weakSelf.targetOrientation]));
+				transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([weakSelf rotationDegreesFromOrientation:weakSelf.lastOrientation toOrientation:weakSelf.targetOrientation]));
 				capturedStartView.transform = transform;
 			}
 		}
@@ -530,7 +533,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		weakSelf.containerView.transform = transform;
 		
 		if (weakSelf.bottomView) {
-			_bottomViewFrame.origin.y = weakSelf.view.bounds.size.height;
+			CGRect rect = weakSelf.bottomViewFrame;
+			rect.origin.y = weakSelf.view.bounds.size.height;
+			weakSelf.bottomViewFrame = rect;
+			
 			weakSelf.bottomView.alpha = 0.0;
 			weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 		}
@@ -554,18 +560,18 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		weakSelf.blurBackgroundView = nil;
 		
 		[weakSelf dismissViewControllerAnimated:NO completion:^{
-			_isDismissing = NO;
+			weakSelf.isDismissing = NO;
 			weakSelf.isAnimating = NO;
 			[weakSelf.view setNeedsLayout];
 			
-			if (_needsRotating) {
-				[weakSelf forceDeviceRotateToOrientation:_lastOrientation];
+			if (weakSelf.needsRotating) {
+				[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
 			}
 			
 			if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didExitModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didExitModalViewController:) withObject:weakSelf];
 			[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
 			if (completion) completion();
-			if (_exitModalBlock) _exitModalBlock(weakSelf);
+			if (weakSelf.exitModalBlock) weakSelf.exitModalBlock(weakSelf);
 		}];
 	}];
 }
@@ -579,10 +585,11 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	[self updateBottomViewFrame];
 	
 	if (animated) {
+		__weak typeof(self) weakSelf = self;
 		[UIView animateWithDuration:[self animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState animations:^{
-			_containerView.frame	= rect;
-			_contentView.frame		= _containerView.bounds;
-			_bottomView.frame		= _bottomViewFrame;
+			weakSelf.containerView.frame	= rect;
+			weakSelf.contentView.frame		= weakSelf.containerView.bounds;
+			weakSelf.bottomView.frame		= weakSelf.bottomViewFrame;
 		} completion:nil];
 	}
 	else {
