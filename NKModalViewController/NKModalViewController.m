@@ -192,23 +192,85 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	UIViewController *presentingViewController = [self.class topPresentedViewController];
 	
-	UIImageView *capturedStartView = nil;
-	UIImageView *capturedContentView = nil;
-	
 	self.lastOrientation	= [UIApplication sharedApplication].statusBarOrientation;
 	self.targetOrientation	= [_contentViewController preferredInterfaceOrientationForPresentation];
 	self.needsRotating		= _lastOrientation!=_targetOrientation;
+	
+	CGFloat cornerRadius = [self cornerRadiusValue];
+	_containerView.layer.cornerRadius = cornerRadius;
+	_containerView.layer.masksToBounds = cornerRadius>0.0;
+	
+	// --------
+	
+	if (_contentView.superview) {
+		if (_needsRotating) {
+			[self forceDeviceRotateToOrientation:_targetOrientation];
+			self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+		}
+		
+		self.bottomView = [self valueFromProtocolConformer:_contentViewController withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
+		if (_bottomView) {
+			_bottomView.alpha = 0.0;
+			
+			[self.view insertSubview:_bottomView atIndex:0];
+			[self updateBottomViewFrame];
+			
+			CGRect rect = _bottomViewFrame;
+			rect.origin.y = self.view.bounds.size.height;
+			_bottomView.frame = rect;
+		}
+		
+		__weak typeof(self) weakSelf = self;
+		[presentingViewController presentViewController:self animated:NO completion:^{
+			if (weakSelf.needsRotating) {
+				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(self.targetOrientation==UIInterfaceOrientationLandscapeLeft ? 90 : -90));
+			}
+			
+			weakSelf.startFrame = [weakSelf.view convertRect:weakSelf.contentView.frame fromCoordinateSpace:weakSelf.contentView.superview];
+			weakSelf.targetFrame = [weakSelf targetContentFrame];
+			
+			weakSelf.containerView.backgroundColor = [UIColor redColor];
+			[weakSelf.containerView addSubview:weakSelf.contentView];
+			weakSelf.containerView.frame = weakSelf.startFrame;
+			weakSelf.contentView.frame = weakSelf.containerView.bounds;
+			
+			[weakSelf setupBlurBackgroundImage];
+			
+			[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+				weakSelf.view.backgroundColor = weakSelf.blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
+				weakSelf.blurContainerView.alpha = 1.0;
+				
+				weakSelf.containerView.transform = CGAffineTransformIdentity;
+				weakSelf.containerView.frame = weakSelf.targetFrame;
+				
+				if (weakSelf.bottomView) {
+					weakSelf.bottomView.alpha = 1.0;
+					weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
+				}
+			} completion:^(BOOL finished) {
+				_isPresenting = NO;
+				weakSelf.isAnimating = NO;
+				[weakSelf.view setNeedsLayout];
+				
+				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didEnterModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didEnterModalViewController:) withObject:weakSelf];
+				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_PRESENT object:weakSelf];
+				if (weakSelf.enterModalBlock) weakSelf.enterModalBlock(weakSelf);
+			}];
+			
+		}];
+		
+		return;
+	}
+	
+	// ---------
+	
+	UIImageView *capturedStartView = nil;
+	UIImageView *capturedContentView = nil;
 	
 	if (_needsRotating) {
 		[self forceDeviceRotateToOrientation:_targetOrientation];
 		self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
 	}
-	
-	
-	
-	CGFloat cornerRadius = [self cornerRadiusValue];
-	_containerView.layer.cornerRadius = cornerRadius;
-	_containerView.layer.masksToBounds = cornerRadius>0.0;
 	
 	if (_startView) {
 		self.lastStartViewAlpha = _startView.alpha;
@@ -263,9 +325,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		weakSelf.targetFrame = [weakSelf targetContentFrame];
 		
+		[weakSelf.containerView addSubview:weakSelf.contentView];
 		weakSelf.containerView.frame = weakSelf.startFrame;
 		weakSelf.contentView.frame = weakSelf.containerView.bounds;
-		[weakSelf.containerView addSubview:weakSelf.contentView];
+		
 		capturedContentView.frame = _startFrame;
 		
 		[weakSelf setupBlurBackgroundImage];

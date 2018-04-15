@@ -51,9 +51,11 @@
 	buttonFrame.origin.y += buttonFrame.size.height + 20;
 	button2.frame = buttonFrame;
 	
-	CGSize contentViewSize = [testViewController preferredContentSize];
-	testViewController.view.frame = CGRectMake((viewSize.width - contentViewSize.width)/2, 30, contentViewSize.width, contentViewSize.height);
-	[testViewController.view setNeedsLayout];
+	if (testViewController.view.superview == self.view) {
+		CGSize contentViewSize = [testViewController preferredContentSize];
+		testViewController.view.frame = CGRectMake((viewSize.width - contentViewSize.width)/2, 30, contentViewSize.width, contentViewSize.height);
+		[testViewController.view setNeedsLayout];
+	}
 }
 
 - (BOOL) shouldAutorotate {
