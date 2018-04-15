@@ -229,7 +229,6 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			weakSelf.startFrame = [weakSelf.view convertRect:weakSelf.contentView.frame fromCoordinateSpace:weakSelf.contentView.superview];
 			weakSelf.targetFrame = [weakSelf targetContentFrame];
 			
-			weakSelf.containerView.backgroundColor = [UIColor redColor];
 			[weakSelf.containerView addSubview:weakSelf.contentView];
 			weakSelf.containerView.frame = weakSelf.startFrame;
 			weakSelf.contentView.frame = weakSelf.containerView.bounds;
@@ -410,6 +409,57 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	[self removeObserver];
 	
+	_isDismissing	 = YES;
+	self.isAnimating = YES;
+	
+	// --------
+	
+	if (self.lastSuperview) {
+		__weak typeof(self) weakSelf = self;
+		[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+			weakSelf.view.backgroundColor = [UIColor clearColor];
+			weakSelf.blurContainerView.alpha = 0.0;
+			
+			weakSelf.containerView.frame = weakSelf.startFrame;
+			weakSelf.contentView.frame = weakSelf.containerView.bounds;
+			weakSelf.containerView.transform = CGAffineTransformIdentity;
+			
+			if (weakSelf.bottomView) {
+				_bottomViewFrame.origin.y = weakSelf.view.bounds.size.height;
+				weakSelf.bottomView.alpha = 0.0;
+				weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
+			}
+			
+		} completion:^(BOOL finished) {
+			[weakSelf.lastSuperview addSubview:weakSelf.contentView];
+			weakSelf.contentView.frame = weakSelf.lastFrame;
+			
+			[weakSelf.blurContainerView removeFromSuperview];
+			weakSelf.blurContainerView = nil;
+			
+			[weakSelf.blurBackgroundView removeFromSuperview];
+			weakSelf.blurBackgroundView = nil;
+			
+			[weakSelf dismissViewControllerAnimated:NO completion:^{
+				_isDismissing = NO;
+				weakSelf.isAnimating = NO;
+				
+				if (_needsRotating) {
+					[weakSelf forceDeviceRotateToOrientation:_lastOrientation];
+				}
+				
+				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didExitModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didExitModalViewController:) withObject:weakSelf];
+				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
+				if (completion) completion();
+				if (_exitModalBlock) _exitModalBlock(weakSelf);
+			}];
+		}];
+		 
+		return;
+	}
+	
+	// --------
+	
 	UIImageView *capturedStartView = nil;
 	
 	if (_startView) {
@@ -437,9 +487,6 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	}
 	
 	if (_needsUpdateStartFrameOnDismiss) [self updateStartFrame];
-	
-	_isDismissing	 = YES;
-	self.isAnimating = YES;
 	
 	__weak typeof(self) weakSelf = self;
 	[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
