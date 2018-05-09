@@ -84,7 +84,7 @@
 	ContentViewController *contentViewController = [ContentViewController new];
 	
 	if (sender==button1) {
-		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:sender].tapOutsideToDismiss = YES;
+		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:sender].enableDragToDismiss = YES;
 	}
 	else if (sender==button2) {
 		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].enableDragToDismiss = YES;

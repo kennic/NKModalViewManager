@@ -408,6 +408,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			capturedStartView.image = nil;
 			[capturedStartView removeFromSuperview];
 			
+			weakSelf.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onPanGesture:)];
+			[weakSelf.view addGestureRecognizer:weakSelf.panGesture];
+			
 			if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didEnterModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didEnterModalViewController:) withObject:weakSelf];
 			[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_PRESENT object:weakSelf];
 			if (weakSelf.enterModalBlock) weakSelf.enterModalBlock(weakSelf);
@@ -961,7 +964,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 }
 
 - (BOOL) shouldEnableDragToDismiss {
-	BOOL value = YES;
+	BOOL value = self.enableDragToDismiss;
 	id<NKModalViewControllerProtocol> target = [self protocolTarget];
 	
 	if ([target respondsToSelector:@selector(shouldAllowDragToDismissForModalViewController:)]) {
@@ -1001,8 +1004,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 }
 
 - (void) onPanGesture:(UIPanGestureRecognizer*)gestureRecognizer {
-	if (!self.enableDragToDismiss && ![self shouldEnableDragToDismiss]) return;
-	
+	if (![self shouldEnableDragToDismiss]) return;
+	NSLog(@"DRAG");
 	UIGestureRecognizerState state = [gestureRecognizer state];
 	
 	UIView *targetView = self.containerView;

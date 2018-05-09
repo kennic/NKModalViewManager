@@ -155,4 +155,12 @@
 	return NKModalDismissingStyleZoomIn;
 }
 
+- (BOOL) shouldTapOutsideToDismissModalViewController:(NKModalViewController *)modalViewController {
+	return NO;
+}
+
+- (BOOL) shouldAllowDragToDismissForModalViewController:(NKModalViewController *)modalViewController {
+	return YES;
+}
+
 @end
