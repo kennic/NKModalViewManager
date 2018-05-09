@@ -59,6 +59,10 @@ typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 - (CGRect) startRectForModalViewController:(NKModalViewController*)modalViewController; // target rect for start presenting, only used when animatedFromView is nil
 - (CGRect) dismissRectForModalViewController:(NKModalViewController*)modalViewController; // target rect for dismissing, only used when animatedFromView is nil
 
+- (void) startDraggingFromModalViewController:(NKModalViewController*)modalViewController;
+- (void) endDraggingFromModalViewController:(NKModalViewController*)modalViewController;
+- (void) didCancelDraggingFromModalViewController:(NKModalViewController*)modalViewController;
+
 @end
 
 

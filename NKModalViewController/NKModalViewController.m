@@ -45,7 +45,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 @property (nonatomic, assign) CGPoint touchPoint;
 @property (nonatomic, assign) CGFloat originY;
-@property (nonatomic, assign) BOOL isSlidedUp;
+//@property (nonatomic, assign) BOOL isSlidedUp;
 
 @end
 
@@ -1005,14 +1005,13 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 - (void) onPanGesture:(UIPanGestureRecognizer*)gestureRecognizer {
 	if (![self shouldEnableDragToDismiss]) return;
-	NSLog(@"DRAG");
-	UIGestureRecognizerState state = [gestureRecognizer state];
 	
+	UIGestureRecognizerState state = [gestureRecognizer state];
 	UIView *targetView = self.containerView;
+	UIViewController *currentViewController = [self currentContentViewController];
 	
 	if (state==UIGestureRecognizerStateBegan) {
-//		if ([_contentViewController respondsToSelector:@selector(startFullscreenDragging:)]) [_contentViewController performSelector:@selector(startFullscreenDragging:) withObject:self];
-//		else if ([_contentView respondsToSelector:@selector(startFullscreenDragging:)]) [_contentView performSelector:@selector(startFullscreenDragging:) withObject:self];
+		if ([currentViewController respondsToSelector:@selector(startDraggingFromModalViewController:)]) [currentViewController performSelector:@selector(startDraggingFromModalViewController:) withObject:self];
 		
 //		if (!capturedScreenImageView) {
 //			[self captureMainScreen];
@@ -1042,7 +1041,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 //			else if ([_contentView respondsToSelector:@selector(endFullscreenDragging:)]) [_contentView performSelector:@selector(endFullscreenDragging:) withObject:self];
 			
 			if (state==UIGestureRecognizerStateEnded && fabs(distance)>DISTANCE_THRESSHOLD) {
-				self.isSlidedUp = distance<0;
+				if ([currentViewController respondsToSelector:@selector(endDraggingFromModalViewController:)]) [currentViewController performSelector:@selector(endDraggingFromModalViewController:) withObject:self];
+				
+//				self.isSlidedUp = distance<0;
 				[self dismissWithAnimated:YES completion:nil];
 			}
 			else {
@@ -1054,8 +1055,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 					newFrame.origin.y = weakSelf.originY;
 					targetView.frame = newFrame;
 				} completion:^(BOOL finished) {
-//					if ([weakSelf.contentViewController respondsToSelector:@selector(endFullscreenDraggingAnimate:)]) [weakSelf.contentViewController performSelector:@selector(endFullscreenDraggingAnimate:) withObject:self];
-//					else if ([weakSelf.contentView respondsToSelector:@selector(endFullscreenDraggingAnimate:)]) [weakSelf.contentView performSelector:@selector(endFullscreenDraggingAnimate:) withObject:self];
+					if (finished) {
+						if ([currentViewController respondsToSelector:@selector(didCancelDraggingFromModalViewController:)]) [currentViewController performSelector:@selector(didCancelDraggingFromModalViewController:) withObject:self];
+					}
 				}];
 			}
 		}
