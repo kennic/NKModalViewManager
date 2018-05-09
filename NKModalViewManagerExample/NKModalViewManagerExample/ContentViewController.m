@@ -95,25 +95,25 @@
 
 // Uncomment these lines to show how it react to orientation changed
  
-- (UIStatusBarStyle) preferredStatusBarStyle {
-	return UIStatusBarStyleLightContent;
-}
-
-- (BOOL) prefersStatusBarHidden {
-	return NO;
-}
-
-- (BOOL) shouldAutorotate {
-	return YES;
-}
-
-- (UIInterfaceOrientation) preferredInterfaceOrientationForPresentation {
-	return UIInterfaceOrientationLandscapeLeft;
-}
-
-- (UIInterfaceOrientationMask) supportedInterfaceOrientations {
-	return UIInterfaceOrientationMaskLandscapeLeft;
-}
+//- (UIStatusBarStyle) preferredStatusBarStyle {
+//	return UIStatusBarStyleLightContent;
+//}
+//
+//- (BOOL) prefersStatusBarHidden {
+//	return NO;
+//}
+//
+//- (BOOL) shouldAutorotate {
+//	return YES;
+//}
+//
+//- (UIInterfaceOrientation) preferredInterfaceOrientationForPresentation {
+//	return UIInterfaceOrientationLandscapeLeft;
+//}
+//
+//- (UIInterfaceOrientationMask) supportedInterfaceOrientations {
+//	return UIInterfaceOrientationMaskLandscapeLeft;
+//}
 
 
 

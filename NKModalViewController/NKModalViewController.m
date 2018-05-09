@@ -16,6 +16,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 #define DEFAULT_ANIMATE_DURATION 0.45f
 #define DEFAULT_CORNER_RADIUS_VALUE 8.0f
 #define DEGREES_TO_RADIANS(x) (M_PI * (x) / 180.0)
+#define DISTANCE_THRESSHOLD 60
 
 @interface NKModalViewController ()
 
@@ -34,11 +35,17 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 @property (nonatomic, strong) UIVisualEffectView *blurBackgroundView;
 @property (nonatomic, strong) UIView *blurContainerView;
 
+@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+
 @property (nonatomic, assign) BOOL isPresenting;
 @property (nonatomic, assign) BOOL isDismissing;
 @property (nonatomic, assign) BOOL isAnimating;
 @property (nonatomic, assign) BOOL needsRotating;
 @property (nonatomic, assign) BOOL needsUpdateStartFrameOnDismiss;
+
+@property (nonatomic, assign) CGPoint touchPoint;
+@property (nonatomic, assign) CGFloat originY;
+@property (nonatomic, assign) BOOL isSlidedUp;
 
 @end
 
@@ -132,6 +139,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 - (id) init {
 	if ((self = [super initWithNibName:nil bundle:nil])) {
 		self.tapOutsideToDismiss		= NO;
+		self.enableDragToDismiss		= NO;
 		self.shouldUseChildViewControllerForStatusBarVisual = YES;
 		self.enableKeyboardShifting		= YES;
 		self.presentingStyle			= NKModalPresentingStyleFromBottom;
@@ -253,6 +261,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.isPresenting = NO;
 				weakSelf.isAnimating = NO;
 				[weakSelf.view setNeedsLayout];
+				
+				weakSelf.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onPanGesture:)];
+				[weakSelf.view addGestureRecognizer:weakSelf.panGesture];
 				
 				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didEnterModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didEnterModalViewController:) withObject:weakSelf];
 				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_PRESENT object:weakSelf];
@@ -949,6 +960,17 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	return value;
 }
 
+- (BOOL) shouldEnableDragToDismiss {
+	BOOL value = YES;
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	
+	if ([target respondsToSelector:@selector(shouldAllowDragToDismissForModalViewController:)]) {
+		value = [target shouldAllowDragToDismissForModalViewController:self];
+	}
+	
+	return value;
+}
+
 - (id<NKModalViewControllerProtocol>) protocolTarget {
 	UIViewController *activeViewController = [self currentContentViewController];
 	
@@ -974,6 +996,65 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	else if (object==_contentView) {
 		if ([keyPath isEqualToString:@"frame"] || [keyPath isEqualToString:@"bounds"]) {
 			if (!self.isAnimating) [self updatePositionWithAnimated:YES];
+		}
+	}
+}
+
+- (void) onPanGesture:(UIPanGestureRecognizer*)gestureRecognizer {
+	if (!self.enableDragToDismiss && ![self shouldEnableDragToDismiss]) return;
+	
+	UIGestureRecognizerState state = [gestureRecognizer state];
+	
+	UIView *targetView = self.containerView;
+	
+	if (state==UIGestureRecognizerStateBegan) {
+//		if ([_contentViewController respondsToSelector:@selector(startFullscreenDragging:)]) [_contentViewController performSelector:@selector(startFullscreenDragging:) withObject:self];
+//		else if ([_contentView respondsToSelector:@selector(startFullscreenDragging:)]) [_contentView performSelector:@selector(startFullscreenDragging:) withObject:self];
+		
+//		if (!capturedScreenImageView) {
+//			[self captureMainScreen];
+//			capturedScreenImageView.transform = CGAffineTransformMakeScale(MIN_SCREEN_SCALE, MIN_SCREEN_SCALE);
+//		}
+//
+//		capturedScreenImageView.alpha = 0.0;
+//		[self.view insertSubview:capturedScreenImageView atIndex:0];
+		
+		_touchPoint	= [gestureRecognizer locationInView:targetView.superview];
+		_originY		= targetView.frame.origin.y;
+	}
+	else {
+		CGPoint currentPoint	= [gestureRecognizer locationInView:targetView.superview];
+		CGFloat distance		= currentPoint.y - _touchPoint.y;
+		
+		if (state==UIGestureRecognizerStateChanged) {
+//			capturedScreenImageView.alpha = (fabs(distance)/DISTANCE_THRESSHOLD) * MIN_SCREEN_ALPHA;
+			
+			CGFloat newY		= _originY + distance;
+			CGRect newFrame		= targetView.frame;
+			newFrame.origin.y	= newY;
+			targetView.frame	= newFrame;
+		}
+		else if (state==UIGestureRecognizerStateEnded || state==UIGestureRecognizerStateCancelled || state==UIGestureRecognizerStateFailed) {
+//			if ([_contentViewController respondsToSelector:@selector(endFullscreenDragging:)]) [_contentViewController performSelector:@selector(endFullscreenDragging:) withObject:self];
+//			else if ([_contentView respondsToSelector:@selector(endFullscreenDragging:)]) [_contentView performSelector:@selector(endFullscreenDragging:) withObject:self];
+			
+			if (state==UIGestureRecognizerStateEnded && fabs(distance)>DISTANCE_THRESSHOLD) {
+				self.isSlidedUp = distance<0;
+				[self dismissWithAnimated:YES completion:nil];
+			}
+			else {
+				__weak typeof(self) weakSelf = self;
+				[UIView animateWithDuration:0.3 animations:^{
+//					capturedScreenImageView.alpha = 0.0;
+					
+					CGRect newFrame = targetView.frame;
+					newFrame.origin.y = weakSelf.originY;
+					targetView.frame = newFrame;
+				} completion:^(BOOL finished) {
+//					if ([weakSelf.contentViewController respondsToSelector:@selector(endFullscreenDraggingAnimate:)]) [weakSelf.contentViewController performSelector:@selector(endFullscreenDraggingAnimate:) withObject:self];
+//					else if ([weakSelf.contentView respondsToSelector:@selector(endFullscreenDraggingAnimate:)]) [weakSelf.contentView performSelector:@selector(endFullscreenDraggingAnimate:) withObject:self];
+				}];
+			}
 		}
 	}
 }

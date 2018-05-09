@@ -34,7 +34,7 @@
 	[self.view addSubview:testViewController.view];
 	
 	button1 = [self createButtonWithTitle:@"Animated from button"];
-	button2 = [self createButtonWithTitle:@"Show from bottom"];
+	button2 = [self createButtonWithTitle:@"Present existing"];
 }
 
 - (void) viewDidLayoutSubviews {
@@ -87,7 +87,7 @@
 		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:sender].tapOutsideToDismiss = YES;
 	}
 	else if (sender==button2) {
-		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].tapOutsideToDismiss = YES;
+		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].enableDragToDismiss = YES;
 	}
 }
 

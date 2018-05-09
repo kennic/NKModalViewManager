@@ -43,6 +43,7 @@ typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 - (void) didExitModalViewController:(NKModalViewController*)sender;
 
 - (BOOL) shouldTapOutsideToDismissModalViewController:(NKModalViewController*)modalViewController;
+- (BOOL) shouldAllowDragToDismissForModalViewController:(NKModalViewController*)modalViewController;
 - (BOOL) shouldAllowKeyboardShiftingForModalViewController:(NKModalViewController*)modalViewController;
 
 - (NKModalPresentingStyle) presentingStyleForModalViewController:(NKModalViewController*)modalViewController;
@@ -77,6 +78,7 @@ typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 
 @property (nonatomic, assign) BOOL	enableKeyboardShifting;
 @property (nonatomic, assign) BOOL	tapOutsideToDismiss;
+@property (nonatomic, assign) BOOL	enableDragToDismiss;
 @property (nonatomic, assign) BOOL	shouldUseChildViewControllerForStatusBarVisual; // set to YES to migrate preferredStatusBarStyle & prefersStatusBarHidden & preferredStatusBarUpdateAnimation from UINavigationController to its visible viewController
 @property (nonatomic, assign) NKModalPresentingStyle presentingStyle;
 @property (nonatomic, assign) NKModalDismissingStyle dismissingStyle;
