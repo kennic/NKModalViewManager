@@ -425,8 +425,12 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_WILL_DISMISS object:self];
 	
 	[self removeObserver];
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[self.view removeGestureRecognizer:_panGesture];
+	[_panGesture removeTarget:self action:@selector(onPanGesture:)];
+	self.panGesture = nil;
 	
-	_isDismissing	 = YES;
+	_isDismissing = YES;
 	self.isAnimating = YES;
 	
 	// --------
@@ -730,7 +734,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			}
 		}
 		else if (_isDismissing) {
-			NKModalDismissingStyle transitionStyle = [self dismissingStyle];
+			NKModalDismissingStyle transitionStyle = [self dismissStyleValue];
 			
 			switch (transitionStyle) {
 					case NKModalDismissingStyleToBottom:
@@ -775,7 +779,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			[_contentViewController removeObserver:self forKeyPath:@"preferredContentSize"];
 		}
 		@catch (NSException *exception) {
+#if DEBUG
 			NSLog(@"Error: %@", exception);
+#endif
 		}
 	}
 	else {
@@ -784,7 +790,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			[_contentView removeObserver:self forKeyPath:@"bounds"];
 		}
 		@catch (NSException *exception) {
+#if DEBUG
 			NSLog(@"Error: %@", exception);
+#endif
 		}
 	}
 }

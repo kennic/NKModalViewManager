@@ -18,6 +18,7 @@
 	UIImageView *bgImageView;
 	UIButton *button1;
 	UIButton *button2;
+	UIButton *button3;
 	ContentViewController *testViewController;
 }
 
@@ -34,7 +35,8 @@
 	[self.view addSubview:testViewController.view];
 	
 	button1 = [self createButtonWithTitle:@"Animated from button"];
-	button2 = [self createButtonWithTitle:@"Present existing"];
+	button2 = [self createButtonWithTitle:@"Present from center"];
+	button3 = [self createButtonWithTitle:@"Present existing"];
 }
 
 - (void) viewDidLayoutSubviews {
@@ -45,11 +47,14 @@
 	CGSize viewSize = self.view.bounds.size;
 	CGSize buttonSize = CGSizeMake(200, 40);
 	
-	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 100, buttonSize.width, buttonSize.height);;
+	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 150, buttonSize.width, buttonSize.height);;
 	button1.frame = buttonFrame;
 	
 	buttonFrame.origin.y += buttonFrame.size.height + 20;
 	button2.frame = buttonFrame;
+	
+	buttonFrame.origin.y += buttonFrame.size.height + 20;
+	button3.frame = buttonFrame;
 	
 	if (testViewController.view.superview == self.view) {
 		CGSize contentViewSize = [testViewController preferredContentSize];
@@ -87,6 +92,9 @@
 		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:sender].enableDragToDismiss = YES;
 	}
 	else if (sender==button2) {
+		[[NKModalViewManager sharedInstance] presentModalViewController:contentViewController animatedFromView:nil].enableDragToDismiss = YES;
+	}
+	else if (sender==button3) {
 		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].enableDragToDismiss = YES;
 	}
 }
