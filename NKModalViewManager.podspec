@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NKModalViewManager'
-  s.version          = '2.0'
+  s.version          = '2.1'
   s.summary          = 'Present UIViewController modally'
   s.description      = <<-DESC
 Present UIViewController modally easily and beautifully with animation.
