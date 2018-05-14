@@ -200,7 +200,12 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	self.lastSuperview	= _contentView.superview;
 	self.lastFrame		= _contentView.frame;
 	
-	UIViewController *presentingViewController = [self.class topPresentedViewController];
+	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	UIViewController *presentingViewController = nil;
+	if ([target respondsToSelector:@selector(viewControllerForPresentingModalViewController:)]) {
+		presentingViewController = [target viewControllerForPresentingModalViewController:self];
+	}
+	if (!presentingViewController) presentingViewController = [self.class topPresentedViewController];
 	
 	self.lastOrientation	= [UIApplication sharedApplication].statusBarOrientation;
 	self.targetOrientation	= [_contentViewController preferredInterfaceOrientationForPresentation];

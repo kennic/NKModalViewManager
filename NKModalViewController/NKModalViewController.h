@@ -54,6 +54,7 @@ typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 - (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController*)modalViewController;
 - (CGFloat) cornerRadiusValueForModalViewController:(NKModalViewController*)modalViewController;
 - (UIView*) viewAtBottomOfModalViewController:(NKModalViewController*)modalViewController;
+- (UIViewController*) viewControllerForPresentingModalViewController:(NKModalViewController*)modalViewController;
 
 - (CGRect) presentRectForModalViewController:(NKModalViewController*)modalViewController;
 - (CGRect) startRectForModalViewController:(NKModalViewController*)modalViewController; // target rect for start presenting, only used when animatedFromView is nil
