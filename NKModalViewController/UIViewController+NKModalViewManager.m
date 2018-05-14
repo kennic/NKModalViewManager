@@ -10,7 +10,7 @@
 
 @implementation UIViewController (NKModalViewManager)
 
-- (NKModalViewController*) presentingModalViewController {
+- (nullable NKModalViewController*) presentingModalViewController {
 	return [[NKModalViewManager sharedInstance] modalViewControllerThatContainsViewController:self];
 }
 

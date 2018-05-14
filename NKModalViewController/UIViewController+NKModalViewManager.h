@@ -11,6 +11,6 @@
 
 @interface UIViewController (NKModalViewManager)
 
-- (NKModalViewController*) presentingModalViewController; // return modal view controller that contains this view controller (self)
+- (nullable NKModalViewController*) presentingModalViewController; // return modal view controller that contains this view controller (self)
 
 @end
