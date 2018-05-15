@@ -12,8 +12,10 @@
 	UIImageView			*imageView;
 	UIVisualEffectView	*effectView;
 	UIButton			*closeButton;
+	UIButton			*showButton;
 	UILabel				*titleLabel;
 	UITextField			*textField;
+	UIWindow *window;
 }
 
 - (void) dismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion {
@@ -59,7 +61,18 @@
 	textField.font = [UIFont fontWithName:@"Helvetica" size:16];
 	[self.view addSubview:textField];
 	
+	showButton = [UIButton buttonWithType:UIButtonTypeCustom];
+	showButton.titleLabel.font = [UIFont systemFontOfSize:14];
+	[showButton setTitle:@"Present another" forState:UIControlStateNormal];
+	[showButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+	[showButton setBackgroundColor:[UIColor colorWithRed:0.178 green:0.179 blue:0.177 alpha:0.898]];
+	showButton.layer.cornerRadius = 5.0;
+	showButton.showsTouchWhenHighlighted = YES;
+	[showButton addTarget:self action:@selector(onButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
+	[self.view addSubview:showButton];
+	
 	closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+	closeButton.titleLabel.font = [UIFont systemFontOfSize:16];
 	[closeButton setTitle:@"Close" forState:UIControlStateNormal];
 	[closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
 	[closeButton setBackgroundColor:[UIColor colorWithRed:0.178 green:0.179 blue:0.177 alpha:0.898]];
@@ -76,9 +89,12 @@
 	imageView.frame  = self.view.bounds;
 	
 	CGSize viewSize = self.view.bounds.size;
-	CGSize buttonSize = CGSizeMake(100, 40);
+	CGSize buttonSize = CGSizeMake(120, 40);
 	
-	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 40, buttonSize.width, buttonSize.height);;
+	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 90, buttonSize.width, buttonSize.height);;
+	showButton.frame = buttonFrame;
+	
+	buttonFrame.origin.y += buttonFrame.size.height + 10;
 	closeButton.frame = buttonFrame;
 	
 	CGSize labelSize = [titleLabel sizeThatFits:viewSize];
@@ -89,31 +105,31 @@
 
 - (CGSize) preferredContentSize {
 	// when you make this size changed on-the-fly, call [self.presentingModalViewController setNeedsLayoutView] to update it
-	return CGSizeMake(360, 280); // return CGSizeZero for fullScreen
+	return CGSizeMake(360, 300); // return CGSizeZero for fullScreen
 }
 
 
 // Uncomment these lines to show how it react to orientation changed
  
-//- (UIStatusBarStyle) preferredStatusBarStyle {
-//	return UIStatusBarStyleLightContent;
-//}
-//
-//- (BOOL) prefersStatusBarHidden {
-//	return NO;
-//}
-//
-//- (BOOL) shouldAutorotate {
-//	return YES;
-//}
-//
-//- (UIInterfaceOrientation) preferredInterfaceOrientationForPresentation {
-//	return UIInterfaceOrientationLandscapeLeft;
-//}
-//
-//- (UIInterfaceOrientationMask) supportedInterfaceOrientations {
-//	return UIInterfaceOrientationMaskLandscapeLeft;
-//}
+- (UIStatusBarStyle) preferredStatusBarStyle {
+	return UIStatusBarStyleLightContent;
+}
+
+- (BOOL) prefersStatusBarHidden {
+	return NO;
+}
+
+- (BOOL) shouldAutorotate {
+	return YES;
+}
+
+- (UIInterfaceOrientation) preferredInterfaceOrientationForPresentation {
+	return UIInterfaceOrientationLandscapeLeft;
+}
+
+- (UIInterfaceOrientationMask) supportedInterfaceOrientations {
+	return UIInterfaceOrientationMaskLandscapeLeft;
+}
 
 
 
@@ -122,6 +138,10 @@
 - (void) onButtonSelected:(UIButton*)sender {
 	if (sender==closeButton) {
 		[self dismissViewControllerAnimated:YES completion:nil];
+	}
+	else if (sender==showButton) {
+		ContentViewController *viewController = [ContentViewController new];
+		[[NKModalViewManager sharedInstance] presentModalViewController:viewController animatedFromView:sender];
 	}
 }
 
@@ -135,9 +155,9 @@
 
 
 #pragma mark - ModalViewControllerProtocol
-
-- (BOOL) enableBlurringBackgroundForModalViewController:(NKModalViewController *)modalViewController {
-	return YES;
+	
+- (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController *)modalViewController {
+	return 5.0;
 }
 
 - (UIView*) viewAtBottomOfModalViewController:(NKModalViewController *)modalViewController {

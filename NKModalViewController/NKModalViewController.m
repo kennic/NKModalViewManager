@@ -215,6 +215,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	_containerView.layer.cornerRadius = cornerRadius;
 	_containerView.layer.masksToBounds = cornerRadius>0.0;
 	
+	self.modalPresentationCapturesStatusBarAppearance = YES;
+	
 	// --------
 	
 	if (_contentView.superview) {
@@ -251,6 +253,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			[weakSelf setupBlurBackgroundImage];
 			
 			[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+				[weakSelf setNeedsStatusBarAppearanceUpdate];
 				weakSelf.view.backgroundColor = weakSelf.blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
 				weakSelf.blurContainerView.alpha = 1.0;
 				
@@ -373,6 +376,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			weakSelf.view.backgroundColor = weakSelf.blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
 			weakSelf.blurContainerView.alpha = 1.0;
+			[weakSelf setNeedsStatusBarAppearanceUpdate];
 			
 			if (weakSelf.needsRotating) {
 				capturedStartView.transform = CGAffineTransformIdentity;
@@ -400,6 +404,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 			}
 		} completion:^(BOOL finished) {
+			[weakSelf setNeedsStatusBarAppearanceUpdate];
+			
 			weakSelf.isPresenting = NO;
 			weakSelf.isAnimating = NO;
 			[weakSelf.view setNeedsLayout];
