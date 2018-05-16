@@ -76,7 +76,6 @@
 		635375F11C967D8D00C416B4 /* NKModalViewManagerExample */ = {
 			isa = PBXGroup;
 			children = (
-				638EC10A20AC005B00C0243E /* FullScreenController */,
 				635376091C967DA300C416B4 /* NKModalViewController */,
 				635375F51C967D8D00C416B4 /* AppDelegate.h */,
 				635375F61C967D8D00C416B4 /* AppDelegate.m */,
@@ -104,6 +103,7 @@
 		635376091C967DA300C416B4 /* NKModalViewController */ = {
 			isa = PBXGroup;
 			children = (
+				638EC10A20AC005B00C0243E /* FullScreenController */,
 				6353760C1C967DA300C416B4 /* NKModalViewManager.h */,
 				6353760D1C967DA300C416B4 /* NKModalViewManager.m */,
 				6353760A1C967DA300C416B4 /* NKModalViewController.h */,
