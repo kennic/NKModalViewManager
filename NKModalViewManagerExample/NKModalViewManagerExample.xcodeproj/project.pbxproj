@@ -118,10 +118,10 @@
 		638EC11120AC02E100C0243E /* NKFullScreenController */ = {
 			isa = PBXGroup;
 			children = (
-				638EC11220AC02E100C0243E /* NKFullscreenViewController.h */,
 				638EC11320AC02E100C0243E /* NKFullscreenManager.h */,
-				638EC11420AC02E100C0243E /* NKFullscreenViewController.m */,
 				638EC11520AC02E100C0243E /* NKFullscreenManager.m */,
+				638EC11220AC02E100C0243E /* NKFullscreenViewController.h */,
+				638EC11420AC02E100C0243E /* NKFullscreenViewController.m */,
 			);
 			name = NKFullScreenController;
 			path = ../../NKFullScreenController;

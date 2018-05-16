@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NKModalViewManager'
-  s.version          = '3.0'
+  s.version          = '3.1'
   s.summary          = 'Present UIViewController modally'
   s.description      = <<-DESC
 Present UIViewController modally easily and beautifully with animation.
@@ -23,6 +23,6 @@ Present UIViewController modally easily and beautifully with animation.
 
   s.ios.deployment_target = '8.0'
 
-  s.source_files = 'NKModalViewController/**/*', 'NKFullscreenManager/**/*'
+  s.source_files = 'NKModalViewController/**/*', 'NKFullscreenController/**/*'
   
 end
