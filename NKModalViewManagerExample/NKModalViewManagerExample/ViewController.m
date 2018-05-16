@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "ContentViewController.h"
 #import "NKModalViewManager.h"
+#import "NKFullscreenManager.h"
 
 @interface ViewController ()
 
@@ -19,6 +20,7 @@
 	UIButton *button1;
 	UIButton *button2;
 	UIButton *button3;
+	UIButton *button4;
 	ContentViewController *testViewController;
 }
 
@@ -37,6 +39,7 @@
 	button1 = [self createButtonWithTitle:@"Animated from button"];
 	button2 = [self createButtonWithTitle:@"Present from center"];
 	button3 = [self createButtonWithTitle:@"Present existing"];
+	button4 = [self createButtonWithTitle:@"Present fullscreen"];
 }
 
 - (void) viewDidLayoutSubviews {
@@ -47,7 +50,7 @@
 	CGSize viewSize = self.view.bounds.size;
 	CGSize buttonSize = CGSizeMake(200, 40);
 	
-	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 150, buttonSize.width, buttonSize.height);;
+	CGRect buttonFrame = CGRectMake(roundf(viewSize.width/2 - buttonSize.width/2), viewSize.height - buttonSize.height - 200, buttonSize.width, buttonSize.height);;
 	button1.frame = buttonFrame;
 	
 	buttonFrame.origin.y += buttonFrame.size.height + 20;
@@ -55,6 +58,9 @@
 	
 	buttonFrame.origin.y += buttonFrame.size.height + 20;
 	button3.frame = buttonFrame;
+	
+	buttonFrame.origin.y += buttonFrame.size.height + 20;
+	button4.frame = buttonFrame;
 	
 	if (testViewController.view.superview == self.view) {
 		CGSize contentViewSize = [testViewController preferredContentSize];
@@ -96,6 +102,9 @@
 	}
 	else if (sender==button3) {
 		[[NKModalViewManager sharedInstance] presentModalViewController:testViewController animatedFromView:nil].enableDragToDismiss = YES;
+	}
+	else if (sender==button4) {
+		[[NKFullscreenManager sharedInstance] presentFullscreenViewController:testViewController animatedFromView:nil];
 	}
 }
 

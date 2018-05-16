@@ -26,6 +26,7 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 @property (nonatomic, strong) UIWindow					*window;
 @property (nonatomic, strong) UIWindow					*lastWindow;
 @property (nonatomic, strong) UIViewController			*lastPresentedViewController;
+@property (nonatomic, strong) UIView					*lastSuperview;
 @property (nonatomic, assign) CGRect					lastContentFrame;
 @property (nonatomic, assign) UIInterfaceOrientation	lastOrientation;
 @property (nonatomic, assign) BOOL needsRotating;
@@ -124,6 +125,7 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 	self.lastPresentedViewController	= self.lastWindow.rootViewController;
 	self.lastContentFrame				= self.lastPresentedViewController.view.frame;
 	self.lastOrientation				= [UIApplication sharedApplication].statusBarOrientation;
+	self.lastSuperview					= sourceView.superview;
 	BOOL isCurrentlyPortrait			= UIInterfaceOrientationIsPortrait(_lastOrientation);
 	
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -161,7 +163,7 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 	}];
 }
 
-- (void) dismissViewAnimated:(BOOL)animated completion:(void (^)(NKFullscreenViewController *sender))completion {
+- (void) dismissViewAnimated:(BOOL)animated completion:(void (^)(void))completion {
 	[[NSNotificationCenter defaultCenter] postNotificationName:FULLSCREEN_VIEW_CONTROLLER_WILL_DISMISS object:self];
 	
 	typeof(self) __weak weakSelf = self;
@@ -196,12 +198,13 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 		[UIView setAnimationsEnabled:YES];
 		
 		[weakSelf.lastPresentedViewController becomeFirstResponder];
+		if (weakSelf.lastSuperview) [weakSelf.lastSuperview addSubview:weakSelf.contentView];
 		weakSelf.contentView.transform = CGAffineTransformIdentity;
 		weakSelf.contentView.frame = weakSelf.lastContentFrame;
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
 		if (weakSelf.exitFullscreenBlock) weakSelf.exitFullscreenBlock(weakSelf);
-		if (completion) completion(self);
+		if (completion) completion();
 	}];
 }
 

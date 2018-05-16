@@ -23,6 +23,10 @@
 		// if this view controller was presented by ModalViewManager
 		[[NKModalViewManager sharedInstance] dismissViewController:self animated:flag completion:completion];
 	}
+	else if ([[NKFullscreenManager sharedInstance] fullscreenViewControllerThatContainsViewController:self]) {
+		// if this view controller was presented by ModalViewManager
+		[[NKFullscreenManager sharedInstance] dismissViewController:self animated:flag completion:completion];
+	}
 	else {
 		// if this was presented by standard method:
 		// [self presentViewController:content animated:YES completion:nil];

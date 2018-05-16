@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "NKModalViewManager.h"
+#import "NKFullscreenManager.h"
 
 @interface ContentViewController : UIViewController <UITextFieldDelegate, NKModalViewControllerProtocol>
 

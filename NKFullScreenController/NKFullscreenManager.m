@@ -135,7 +135,7 @@ static NKFullscreenManager *_instance;
 
 #pragma mark -
 
-- (void) dismissViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^)(NKFullscreenViewController *sender))completion {
+- (void) dismissViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^)(void))completion {
 	for (NKFullscreenViewController *fullscreenViewController in array) {
 		if (fullscreenViewController.contentViewController==viewController) {
 			[fullscreenViewController dismissViewAnimated:animated completion:completion];
@@ -144,7 +144,7 @@ static NKFullscreenManager *_instance;
 	}
 }
 
-- (void) dismissView:(UIView *)view animated:(BOOL)animated completion:(void (^)(NKFullscreenViewController *sender))completion {
+- (void) dismissView:(UIView *)view animated:(BOOL)animated completion:(void (^)(void))completion {
 	for (NKFullscreenViewController *fullscreenViewController in array) {
 		if (fullscreenViewController.contentView==view) {
 			[fullscreenViewController dismissViewAnimated:animated completion:completion];

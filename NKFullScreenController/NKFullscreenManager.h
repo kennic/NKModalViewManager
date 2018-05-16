@@ -33,8 +33,8 @@
 - (NKFullscreenViewController*) fullscreenViewControllerThatContainsView:(UIView*)view;
 - (NKFullscreenViewController*) fullscreenViewControllerThatContainsViewController:(UIViewController*)viewController;
 
-- (void) dismissViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^)(NKFullscreenViewController *sender))completion;
-- (void) dismissView:(UIView *)view animated:(BOOL)animated completion:(void (^)(NKFullscreenViewController *sender))completion;
+- (void) dismissViewController:(UIViewController *)viewController animated:(BOOL)animated completion:(void (^)(void))completion;
+- (void) dismissView:(UIView *)view animated:(BOOL)animated completion:(void (^)(void))completion;
 - (void) dismissAll;
 
 @end

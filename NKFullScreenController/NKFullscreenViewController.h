@@ -56,6 +56,6 @@ extern NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS;
 - (void) presentFullscreenViewController:(UIViewController*)sourceViewController animatedFromView:(UIView*)fromView;
 - (void) presentFullscreenView:(UIView*)sourceView;
 - (void) presentFullscreenView:(UIView*)sourceView animatedFromView:(UIView*)fromView; // auto set targetView to main view
-- (void) dismissViewAnimated:(BOOL)flag completion:(void (^)(NKFullscreenViewController *sender))completion; // completion does not related to exitFullscreen block
+- (void) dismissViewAnimated:(BOOL)flag completion:(void (^)(void))completion; // completion does not related to exitFullscreen block
 
 @end
