@@ -17,6 +17,8 @@
 		635376111C967DA300C416B4 /* NKModalViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 6353760D1C967DA300C416B4 /* NKModalViewManager.m */; };
 		635376121C967DA300C416B4 /* UIViewController+NKModalViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 6353760F1C967DA300C416B4 /* UIViewController+NKModalViewManager.m */; };
 		635376151C96BB6300C416B4 /* ContentViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 635376141C96BB6300C416B4 /* ContentViewController.m */; };
+		638EC10F20AC005B00C0243E /* NKFullscreenManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 638EC10D20AC005B00C0243E /* NKFullscreenManager.m */; };
+		638EC11020AC005B00C0243E /* NKFullscreenViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 638EC10E20AC005B00C0243E /* NKFullscreenViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,10 @@
 		6353760F1C967DA300C416B4 /* UIViewController+NKModalViewManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+NKModalViewManager.m"; sourceTree = "<group>"; };
 		635376131C96BB6300C416B4 /* ContentViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContentViewController.h; sourceTree = "<group>"; };
 		635376141C96BB6300C416B4 /* ContentViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ContentViewController.m; sourceTree = "<group>"; };
+		638EC10B20AC005B00C0243E /* NKFullscreenViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NKFullscreenViewController.h; sourceTree = "<group>"; };
+		638EC10C20AC005B00C0243E /* NKFullscreenManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NKFullscreenManager.h; sourceTree = "<group>"; };
+		638EC10D20AC005B00C0243E /* NKFullscreenManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NKFullscreenManager.m; sourceTree = "<group>"; };
+		638EC10E20AC005B00C0243E /* NKFullscreenViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NKFullscreenViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +76,7 @@
 		635375F11C967D8D00C416B4 /* NKModalViewManagerExample */ = {
 			isa = PBXGroup;
 			children = (
+				638EC10A20AC005B00C0243E /* FullScreenController */,
 				635376091C967DA300C416B4 /* NKModalViewController */,
 				635375F51C967D8D00C416B4 /* AppDelegate.h */,
 				635375F61C967D8D00C416B4 /* AppDelegate.m */,
@@ -106,6 +113,17 @@
 			);
 			name = NKModalViewController;
 			path = ../../NKModalViewController;
+			sourceTree = "<group>";
+		};
+		638EC10A20AC005B00C0243E /* FullScreenController */ = {
+			isa = PBXGroup;
+			children = (
+				638EC10C20AC005B00C0243E /* NKFullscreenManager.h */,
+				638EC10D20AC005B00C0243E /* NKFullscreenManager.m */,
+				638EC10B20AC005B00C0243E /* NKFullscreenViewController.h */,
+				638EC10E20AC005B00C0243E /* NKFullscreenViewController.m */,
+			);
+			path = FullScreenController;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -183,8 +201,10 @@
 				635376151C96BB6300C416B4 /* ContentViewController.m in Sources */,
 				635376111C967DA300C416B4 /* NKModalViewManager.m in Sources */,
 				635375FA1C967D8D00C416B4 /* ViewController.m in Sources */,
+				638EC10F20AC005B00C0243E /* NKFullscreenManager.m in Sources */,
 				635376121C967DA300C416B4 /* UIViewController+NKModalViewManager.m in Sources */,
 				635375F71C967D8D00C416B4 /* AppDelegate.m in Sources */,
+				638EC11020AC005B00C0243E /* NKFullscreenViewController.m in Sources */,
 				635375F41C967D8D00C416B4 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -694,7 +694,6 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	return CGRectMake(roundf(viewSize.width/2 - contentSize.width/2), roundf(viewSize.height/2 - contentSize.height/2), contentSize.width, contentSize.height);
 }
 
-
 - (void) updateStartFrame {
 	if (_startView!=nil) {
 		self.startFrame  = [_startView convertRect:_startView.bounds toCoordinateSpace:self.view];

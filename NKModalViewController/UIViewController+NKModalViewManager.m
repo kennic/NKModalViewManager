@@ -13,5 +13,5 @@
 - (nullable NKModalViewController*) presentingModalViewController {
 	return [[NKModalViewManager sharedInstance] modalViewControllerThatContainsViewController:self];
 }
-
+	
 @end

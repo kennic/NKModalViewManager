@@ -14,4 +14,8 @@
 
 @implementation AppDelegate
 
+	-  (UIInterfaceOrientationMask) application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(nullable UIWindow *)window {
+		return UIInterfaceOrientationMaskAll;
+	}
+	
 @end
