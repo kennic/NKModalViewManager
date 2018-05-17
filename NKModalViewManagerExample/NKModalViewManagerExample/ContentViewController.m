@@ -164,6 +164,10 @@
 	return 5.0;
 }
 
+//- (UIColor*) backgroundColorForModalViewController:(NKModalViewController *)modalViewController {
+//	return [UIColor clearColor];
+//}
+	
 - (UIView*) viewAtBottomOfModalViewController:(NKModalViewController *)modalViewController {
 	UILabel *label = [UILabel new];
 	label.text = @"Tap outside to dismiss";

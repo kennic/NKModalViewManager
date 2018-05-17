@@ -200,10 +200,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	self.lastSuperview	= _contentView.superview;
 	self.lastFrame		= _contentView.frame;
 	
-	id<NKModalViewControllerProtocol> target = [self protocolTarget];
+	id<NKModalViewControllerProtocol> protocolTarget = [self protocolTarget];
 	UIViewController *presentingViewController = nil;
-	if ([target respondsToSelector:@selector(viewControllerForPresentingModalViewController:)]) {
-		presentingViewController = [target viewControllerForPresentingModalViewController:self];
+	if ([protocolTarget respondsToSelector:@selector(viewControllerForPresentingModalViewController:)]) {
+		presentingViewController = [protocolTarget viewControllerForPresentingModalViewController:self];
 	}
 	if (!presentingViewController) presentingViewController = [self.class topPresentedViewController];
 	
@@ -225,7 +225,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
 		}
 		
-		self.bottomView = [self valueFromProtocolConformer:_contentViewController withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
+		self.bottomView = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
 		if (_bottomView) {
 			_bottomView.alpha = 0.0;
 			
@@ -252,9 +252,11 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			
 			[weakSelf setupBlurBackgroundImage];
 			
+			UIColor *backgroundColor = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(backgroundColorForModalViewController:) andObject:self andDefaultValue:weakSelf.blurContainerView ? [UIColor clearColor] : [UIColor colorWithWhite:0.0 alpha:0.8]];
+			
 			[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 				[weakSelf setNeedsStatusBarAppearanceUpdate];
-				weakSelf.view.backgroundColor = weakSelf.blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
+				weakSelf.view.backgroundColor = backgroundColor;
 				weakSelf.blurContainerView.alpha = 1.0;
 				
 				weakSelf.containerView.transform = CGAffineTransformIdentity;
@@ -328,7 +330,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		_contentView.alpha = 0.0;
 	}
 	
-	self.bottomView = [self valueFromProtocolConformer:_contentViewController withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
+	self.bottomView = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
 	if (_bottomView) {
 		_bottomView.alpha = 0.0;
 		
@@ -373,8 +375,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		weakSelf.containerView.transform = transform;
 		
+		UIColor *backgroundColor = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(backgroundColorForModalViewController:) andObject:self andDefaultValue:weakSelf.blurContainerView ? [UIColor clearColor] : [UIColor colorWithWhite:0.0 alpha:0.8]];
+		
 		[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
-			weakSelf.view.backgroundColor = weakSelf.blurContainerView ? [UIColor colorWithWhite:0.0 alpha:0.0] : [UIColor colorWithWhite:0.0 alpha:0.8];
+			weakSelf.view.backgroundColor = backgroundColor;
 			weakSelf.blurContainerView.alpha = 1.0;
 			[weakSelf setNeedsStatusBarAppearanceUpdate];
 			
