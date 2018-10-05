@@ -888,7 +888,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 		
 		if (!_blurBackgroundView) {
 			BlurEffect *blurEffect = (BlurEffect*)[BlurEffect effectWithStyle:UIBlurEffectStyleDark];
-			//	[blurEffect setValue:@(1) forKeyPath:@"effectSettings.blurRadius"];
+			[blurEffect setValue:@(blurValue) forKeyPath:@"effectSettings.blurRadius"];
 			
 			self.blurBackgroundView = [[UIVisualEffectView alloc] initWithEffect:blurEffect];
 			_blurBackgroundView.userInteractionEnabled = NO;

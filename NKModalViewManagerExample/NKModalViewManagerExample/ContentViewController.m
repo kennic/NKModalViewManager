@@ -159,9 +159,9 @@
 
 
 #pragma mark - ModalViewControllerProtocol
-	
+
 - (CGFloat) backgroundBlurryValueForModalViewController:(NKModalViewController *)modalViewController {
-	return 5.0;
+	return 10.0;
 }
 
 //- (UIColor*) backgroundColorForModalViewController:(NKModalViewController *)modalViewController {
