@@ -132,7 +132,7 @@
 }
 
 - (UIInterfaceOrientationMask) supportedInterfaceOrientations {
-	return UIInterfaceOrientationMaskLandscapeLeft;
+	return UIInterfaceOrientationMaskAll;
 }
 
 

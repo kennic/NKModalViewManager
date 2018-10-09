@@ -114,3 +114,10 @@ typedef NS_ENUM(NSInteger, NKModalDismissingStyle) {
 @interface BlurEffect : UIBlurEffect
 
 @end
+
+@interface NKContainerViewController : UIViewController
+
+@property (nonatomic, assign) BOOL shouldUseChildViewControllerForStatusBarVisual;
+@property (nonatomic, weak) UIViewController *contentViewController;
+
+@end

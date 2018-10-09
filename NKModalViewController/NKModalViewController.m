@@ -20,6 +20,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 @interface NKModalViewController ()
 
+@property (nonatomic, strong) UIWindow *window;
+@property (nonatomic, strong) UIWindow *lastWindow;
+
 @property (nonatomic, assign) CGRect startFrame;
 @property (nonatomic, assign) CGRect targetFrame;
 @property (nonatomic, assign) CGRect bottomViewFrame;
@@ -200,21 +203,36 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	self.lastSuperview	= _contentView.superview;
 	self.lastFrame		= _contentView.frame;
 	
+	self.lastOrientation	= [UIApplication sharedApplication].statusBarOrientation;
+	self.targetOrientation	= [_contentViewController preferredInterfaceOrientationForPresentation];
+	self.needsRotating		= _lastOrientation!=_targetOrientation;
+	
 	id<NKModalViewControllerProtocol> protocolTarget = [self protocolTarget];
 	UIViewController *presentingViewController = nil;
 	if ([protocolTarget respondsToSelector:@selector(viewControllerForPresentingModalViewController:)]) {
 		presentingViewController = [protocolTarget viewControllerForPresentingModalViewController:self];
 	}
-	if (!presentingViewController) presentingViewController = [self.class topPresentedViewController];
 	
-	self.lastOrientation	= [UIApplication sharedApplication].statusBarOrientation;
-	self.targetOrientation	= [_contentViewController preferredInterfaceOrientationForPresentation];
-	self.needsRotating		= _lastOrientation!=_targetOrientation;
+	if (!presentingViewController) {
+		self.lastWindow = [[UIApplication sharedApplication] keyWindow];
+		NKContainerViewController *containerViewController = [NKContainerViewController new];
+		containerViewController.contentViewController = _contentViewController != nil ? _contentViewController : self;
+		containerViewController.shouldUseChildViewControllerForStatusBarVisual = self.shouldUseChildViewControllerForStatusBarVisual;
+		presentingViewController = containerViewController;
+
+		self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+		_window.rootViewController = presentingViewController;
+		_window.windowLevel = UIWindowLevelNormal + 1;
+		[_window makeKeyAndVisible];
+		
+//		presentingViewController = [self.class topPresentedViewController];
+	}
 	
 	CGFloat cornerRadius = [self cornerRadiusValue];
 	_containerView.layer.cornerRadius = cornerRadius;
 	_containerView.layer.masksToBounds = cornerRadius>0.0;
 	
+	if (self.window != nil) self.modalPresentationStyle = UIModalPresentationFullScreen;
 	self.modalPresentationCapturesStatusBarAppearance = YES;
 	
 	// --------
@@ -222,7 +240,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	if (_contentView.superview) {
 		if (_needsRotating) {
 			[self forceDeviceRotateToOrientation:_targetOrientation];
-			self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+			if (self.window == nil) self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
 		}
 		
 		self.bottomView = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(viewAtBottomOfModalViewController:) andObject:self andDefaultValue:nil];
@@ -243,7 +261,15 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(weakSelf.targetOrientation==UIInterfaceOrientationLandscapeLeft ? 90 : -90));
 			}
 			
-			weakSelf.startFrame = [weakSelf.view convertRect:weakSelf.contentView.frame fromCoordinateSpace:weakSelf.contentView.superview];
+			if (self.window != nil && weakSelf.needsRotating) {
+				CGRect rect = [weakSelf.contentView.superview convertRect:weakSelf.contentView.frame toCoordinateSpace:weakSelf.view];
+				rect = CGRectMake(weakSelf.targetOrientation==UIInterfaceOrientationLandscapeLeft ? self.window.bounds.size.width - rect.size.height - rect.origin.y : rect.origin.y, rect.origin.x, rect.size.height, rect.size.width);
+				weakSelf.startFrame = rect;
+			}
+			else {
+				weakSelf.startFrame = [weakSelf.view convertRect:weakSelf.contentView.frame fromCoordinateSpace:weakSelf.contentView.superview];
+			}
+			
 			weakSelf.targetFrame = [weakSelf targetContentFrame];
 			
 			[weakSelf.containerView addSubview:weakSelf.contentView];
@@ -253,16 +279,16 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			[weakSelf setupBlurBackgroundImage];
 			
 			UIColor *backgroundColor = [self valueFromProtocolConformer:protocolTarget withSelector:@selector(backgroundColorForModalViewController:) andObject:self andDefaultValue:weakSelf.blurContainerView ? [UIColor clearColor] : [UIColor colorWithWhite:0.0 alpha:0.8]];
-			
+
 			[UIView animateWithDuration:[weakSelf animateDuration] delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 				[weakSelf setNeedsStatusBarAppearanceUpdate];
 				weakSelf.view.backgroundColor = backgroundColor;
 				weakSelf.blurContainerView.alpha = 1.0;
-				
+
 				weakSelf.containerView.transform = CGAffineTransformIdentity;
 				weakSelf.containerView.frame = weakSelf.targetFrame;
 				weakSelf.contentView.frame = weakSelf.containerView.bounds;
-				
+
 				if (weakSelf.bottomView) {
 					weakSelf.bottomView.alpha = 1.0;
 					weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
@@ -271,10 +297,10 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.isPresenting = NO;
 				weakSelf.isAnimating = NO;
 				[weakSelf.view setNeedsLayout];
-				
+
 				weakSelf.panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onPanGesture:)];
 				[weakSelf.view addGestureRecognizer:weakSelf.panGesture];
-				
+
 				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didEnterModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didEnterModalViewController:) withObject:weakSelf];
 				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_PRESENT object:weakSelf];
 				if (weakSelf.enterModalBlock) weakSelf.enterModalBlock(weakSelf);
@@ -292,7 +318,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	if (_needsRotating) {
 		[self forceDeviceRotateToOrientation:_targetOrientation];
-		self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
+		if (self.window == nil) self.view.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(-[self rotationDegreesFromOrientation:_lastOrientation toOrientation:_targetOrientation]));
 	}
 	
 	if (_startView) {
@@ -303,7 +329,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			capturedStartView = [[UIImageView alloc] initWithImage:image];
 			capturedStartView.clipsToBounds = YES;
 			capturedStartView.contentMode = UIViewContentModeScaleAspectFit;
-			capturedStartView.frame = _startFrame;
+//			capturedStartView.frame = _startFrame;
 			[self.view addSubview:capturedStartView];
 		}
 		
@@ -314,7 +340,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				capturedContentView = [[UIImageView alloc] initWithImage:image];
 				capturedContentView.clipsToBounds = YES;
 				capturedContentView.contentMode = UIViewContentModeScaleAspectFill;
-				capturedContentView.frame = _startFrame;
+//				capturedContentView.frame = _startFrame;
 				capturedContentView.alpha = 0.0;
 				capturedContentView.layer.cornerRadius = _containerView.layer.cornerRadius;
 				[self.view addSubview:capturedContentView];
@@ -451,6 +477,9 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	// --------
 	
 	if (self.lastSuperview) {
+		self.needsRotating = _lastOrientation != [UIApplication sharedApplication].statusBarOrientation;
+		if (_needsUpdateStartFrameOnDismiss) [self updateStartFrame];
+		
 		__weak typeof(self) weakSelf = self;
 		[UIView animateWithDuration:animating ? [self animateDuration] : 0.0 delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 			weakSelf.view.backgroundColor = [UIColor clearColor];
@@ -460,7 +489,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.containerView.transform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([weakSelf rotationDegreesFromOrientation:weakSelf.lastOrientation toOrientation:weakSelf.targetOrientation]));
 			}
 			
-			weakSelf.containerView.frame = weakSelf.startFrame;
+			weakSelf.containerView.frame = weakSelf.needsRotating ? weakSelf.startFrame : weakSelf.lastFrame;
 			weakSelf.contentView.frame = weakSelf.containerView.bounds;
 //			weakSelf.containerView.transform = CGAffineTransformIdentity;
 			
@@ -472,7 +501,6 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 				weakSelf.bottomView.alpha = 0.0;
 				weakSelf.bottomView.frame = weakSelf.bottomViewFrame;
 			}
-			
 		} completion:^(BOOL finished) {
 			[weakSelf.lastSuperview addSubview:weakSelf.contentView];
 			weakSelf.contentView.frame = weakSelf.lastFrame;
@@ -597,6 +625,13 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			weakSelf.isAnimating = NO;
 			[weakSelf.view setNeedsLayout];
 			
+			[weakSelf.window.rootViewController resignFirstResponder];
+			weakSelf.window.rootViewController = nil;
+			[weakSelf.window removeFromSuperview];
+			weakSelf.window = nil;
+			
+			[weakSelf.lastWindow makeKeyAndVisible];
+			
 			if (weakSelf.needsRotating) {
 				[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
 			}
@@ -700,11 +735,27 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 - (void) updateStartFrame {
 	if (_startView!=nil) {
-		self.startFrame  = [_startView convertRect:_startView.bounds toCoordinateSpace:self.view];
+		if (self.window != nil && _needsRotating) {
+			CGRect rect = [_startView convertRect:_startView.bounds toCoordinateSpace:self.view];
+			rect = CGRectMake(self.targetOrientation==UIInterfaceOrientationLandscapeLeft && ([UIApplication sharedApplication].statusBarOrientation == UIInterfaceOrientationLandscapeLeft) ? self.window.bounds.size.width - rect.size.height - rect.origin.y : rect.origin.y, rect.origin.x, rect.size.height, rect.size.width);
+			self.startFrame = rect;
+		}
+		else {
+			self.startFrame = [_startView convertRect:_startView.bounds toCoordinateSpace:self.view];
+		}
+		
 		self.needsUpdateStartFrameOnDismiss = YES;
 	}
 	else if (_contentView.superview!=nil && _contentView.superview!=_containerView) {
-		self.startFrame  = [_contentView convertRect:_contentView.bounds toCoordinateSpace:self.view];
+		if (self.window != nil && _needsRotating) {
+			CGRect rect = [_contentView convertRect:_contentView.bounds toCoordinateSpace:self.view];
+			rect = CGRectMake(self.targetOrientation==UIInterfaceOrientationLandscapeLeft && ([UIApplication sharedApplication].statusBarOrientation == UIInterfaceOrientationLandscapeRight) ? self.window.bounds.size.width - rect.size.height - rect.origin.y : rect.origin.y, rect.origin.x, rect.size.height, rect.size.width);
+			self.startFrame = rect;
+		}
+		else {
+			self.startFrame = [_contentView convertRect:_contentView.bounds toCoordinateSpace:self.view];
+		}
+		
 		self.needsUpdateStartFrameOnDismiss = NO;
 	}
 	else {
@@ -1281,6 +1332,52 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	id result = [super copyWithZone:zone];
 	object_setClass(result, [self class]);
 	return result;
+}
+
+@end
+
+@implementation NKContainerViewController
+
+#pragma mark - Rotation Handling
+
+- (BOOL) shouldAutorotate {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController shouldAutorotate] : YES;
+}
+
+- (UIInterfaceOrientation) preferredInterfaceOrientationForPresentation {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController preferredInterfaceOrientationForPresentation] : [UIApplication sharedApplication].statusBarOrientation;
+}
+
+#ifdef __IPHONE_9_0
+- (UIInterfaceOrientationMask) supportedInterfaceOrientations {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController supportedInterfaceOrientations] : UIInterfaceOrientationMaskAll;
+}
+#else
+- (NSUInteger) supportedInterfaceOrientations {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController supportedInterfaceOrientations] : UIInterfaceOrientationMaskAll;
+}
+#endif
+
+
+#pragma mark - Status Bar Handling
+
+- (BOOL) prefersStatusBarHidden {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController prefersStatusBarHidden] : NO;
+}
+
+- (UIStatusBarAnimation) preferredStatusBarUpdateAnimation {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController preferredStatusBarUpdateAnimation] : UIStatusBarAnimationFade;
+}
+
+- (UIStatusBarStyle) preferredStatusBarStyle {
+	UIViewController *targetViewController = self.shouldUseChildViewControllerForStatusBarVisual && [_contentViewController isKindOfClass:[UINavigationController class]] ? ((UINavigationController*)_contentViewController).visibleViewController : _contentViewController;
+	return targetViewController ? [targetViewController preferredStatusBarStyle] : UIStatusBarStyleLightContent;
 }
 
 @end
