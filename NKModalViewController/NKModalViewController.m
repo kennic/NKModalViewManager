@@ -514,10 +514,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			[weakSelf dismissViewControllerAnimated:NO completion:^{
 				weakSelf.isDismissing = NO;
 				weakSelf.isAnimating = NO;
-				
-				if (weakSelf.needsRotating) {
-					[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
-				}
+				[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
 				
 				if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didExitModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didExitModalViewController:) withObject:weakSelf];
 				[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
@@ -531,6 +528,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 	
 	// --------
 	
+	self.needsRotating = _lastOrientation != [UIApplication sharedApplication].statusBarOrientation;
 	UIImageView *capturedStartView = nil;
 	
 	if (_startView) {
@@ -632,9 +630,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			
 			[weakSelf.lastWindow makeKeyAndVisible];
 			
-			if (weakSelf.needsRotating) {
-				[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
-			}
+			[weakSelf forceDeviceRotateToOrientation:weakSelf.lastOrientation];
 			
 			if ([[weakSelf currentContentViewController] respondsToSelector:@selector(didExitModalViewController:)]) [[weakSelf currentContentViewController] performSelector:@selector(didExitModalViewController:) withObject:weakSelf];
 			[[NSNotificationCenter defaultCenter] postNotificationName:MODAL_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];

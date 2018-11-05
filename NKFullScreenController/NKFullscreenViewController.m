@@ -133,7 +133,7 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 	_window.windowLevel = UIWindowLevelNormal + 1;
 	[_window makeKeyAndVisible];
 	
-	self.startFrame  = [self.view convertRect:viewForStartFrame.frame fromView:viewForStartFrame];//[viewForStartFrame.superview convertRect:viewForStartFrame.frame toView:self.view];
+	self.startFrame  = [self.view convertRect:viewForStartFrame.frame fromView:viewForStartFrame.superview ?: viewForStartFrame];//[viewForStartFrame.superview convertRect:viewForStartFrame.frame toView:self.view];
 	self.targetFrame = self.view.bounds;
 	
 	UIInterfaceOrientation targetOrientation = [_contentViewController preferredInterfaceOrientationForPresentation];
@@ -166,6 +166,13 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 - (void) dismissViewAnimated:(BOOL)animated completion:(void (^)(void))completion {
 	[[NSNotificationCenter defaultCenter] postNotificationName:FULLSCREEN_VIEW_CONTROLLER_WILL_DISMISS object:self];
 	
+//	if (_startFromView != nil) {
+//		_startFrame = [self.view convertRect:_startFromView.frame fromView:_startFromView];
+//	}
+//	else {
+//		_startFrame = _lastContentFrame;
+//	}
+	
 	typeof(self) __weak weakSelf = self;
 	[UIView animateWithDuration:ANIMATE_DURATION delay:0.0f usingSpringWithDamping:1.0f initialSpringVelocity:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
 		weakSelf.view.backgroundColor = [UIColor clearColor];
@@ -177,30 +184,35 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 		
 		weakSelf.contentView.frame = weakSelf.startFrame;
 		[weakSelf.contentView layoutIfNeeded];
+		
+		UIDevice *currentDevice = [UIDevice currentDevice];
+//		[UIView setAnimationsEnabled:NO];
+		[currentDevice beginGeneratingDeviceOrientationNotifications];
+//		[[UIApplication sharedApplication] setStatusBarOrientation:weakSelf.lastOrientation animated:NO];
+		[UIApplication sharedApplication].statusBarOrientation = weakSelf.lastOrientation;
+		[currentDevice setValue:[NSNumber numberWithInt:weakSelf.lastOrientation] forKey:@"orientation"];
+		[currentDevice endGeneratingDeviceOrientationNotifications];
+		
+		[UIViewController attemptRotationToDeviceOrientation];
+//		[UIView setAnimationsEnabled:YES];
+		
 	} completion:^(BOOL finished) {
 		weakSelf.startFromView.hidden = NO;
+		
+		if (weakSelf.lastSuperview) [weakSelf.lastSuperview addSubview:weakSelf.contentView];
+		weakSelf.contentView.transform = CGAffineTransformIdentity;
+		weakSelf.contentView.frame = weakSelf.lastContentFrame;
+		
+		[weakSelf.lastWindow makeKeyAndVisible];
 		
 		[weakSelf.window.rootViewController resignFirstResponder];
 		weakSelf.window.rootViewController = nil;
 		[weakSelf.window removeFromSuperview];
 		weakSelf.window = nil;
 
-		[weakSelf.lastWindow makeKeyAndVisible];
 		
-		UIDevice *currentDevice = [UIDevice currentDevice];
-		[UIView setAnimationsEnabled:NO];
-		[currentDevice beginGeneratingDeviceOrientationNotifications];
-//		[[UIApplication sharedApplication] setStatusBarOrientation:weakSelf.lastOrientation animated:NO];
-		[UIApplication sharedApplication].statusBarOrientation = weakSelf.lastOrientation;
-		[currentDevice setValue:[NSNumber numberWithInt:weakSelf.lastOrientation] forKey:@"orientation"];
-		[currentDevice endGeneratingDeviceOrientationNotifications];
-		[UIViewController attemptRotationToDeviceOrientation];
-		[UIView setAnimationsEnabled:YES];
 		
 		[weakSelf.lastPresentedViewController becomeFirstResponder];
-		if (weakSelf.lastSuperview) [weakSelf.lastSuperview addSubview:weakSelf.contentView];
-		weakSelf.contentView.transform = CGAffineTransformIdentity;
-		weakSelf.contentView.frame = weakSelf.lastContentFrame;
 		
 		[[NSNotificationCenter defaultCenter] postNotificationName:FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS object:weakSelf];
 		if (weakSelf.exitFullscreenBlock) weakSelf.exitFullscreenBlock(weakSelf);
