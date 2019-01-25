@@ -179,7 +179,7 @@
 }
 
 - (NKModalDismissingStyle) dismissingStyleForModalViewController:(NKModalViewController *)modalViewController {
-	return NKModalDismissingStyleZoomOut;
+	return NKModalDismissingStyleToLeft;
 }
 
 - (BOOL) shouldTapOutsideToDismissModalViewController:(NKModalViewController *)modalViewController {

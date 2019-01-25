@@ -47,7 +47,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 @property (nonatomic, assign) BOOL needsUpdateStartFrameOnDismiss;
 
 @property (nonatomic, assign) CGPoint touchPoint;
-@property (nonatomic, assign) CGFloat originY;
+@property (nonatomic, assign) CGPoint originPoint;
+@property (nonatomic, assign) NKModalDismissingStyle currentDismissStyle;
 //@property (nonatomic, assign) BOOL isSlidedUp;
 
 @end
@@ -1090,26 +1091,60 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 //		capturedScreenImageView.alpha = 0.0;
 //		[self.view insertSubview:capturedScreenImageView atIndex:0];
 		
+		_currentDismissStyle = [self dismissStyleValue];
 		_touchPoint	= [gestureRecognizer locationInView:targetView.superview];
-		_originY		= targetView.frame.origin.y;
+		_originPoint = targetView.frame.origin;
 	}
 	else {
 		CGPoint currentPoint	= [gestureRecognizer locationInView:targetView.superview];
-		CGFloat distance		= currentPoint.y - _touchPoint.y;
+		CGFloat distance;
+		
+		if (_currentDismissStyle == NKModalDismissingStyleToTop) {
+			distance = _touchPoint.y - currentPoint.y;
+		}
+		else if (_currentDismissStyle == NKModalDismissingStyleToLeft) {
+			distance = _touchPoint.x - currentPoint.x;
+		}
+		else if (_currentDismissStyle == NKModalDismissingStyleToRight) {
+			distance = currentPoint.x - _touchPoint.x;
+		}
+		else {
+			distance = currentPoint.y - _touchPoint.y;
+		}
 		
 		if (state==UIGestureRecognizerStateChanged) {
 //			capturedScreenImageView.alpha = (fabs(distance)/DISTANCE_THRESSHOLD) * MIN_SCREEN_ALPHA;
 			
-			CGFloat newY		= _originY + distance;
-			CGRect newFrame		= targetView.frame;
-			newFrame.origin.y	= newY;
-			targetView.frame	= newFrame;
+			if (_currentDismissStyle == NKModalDismissingStyleToLeft) {
+				CGFloat newX		= _originPoint.x - distance;
+				CGRect newFrame		= targetView.frame;
+				newFrame.origin.x	= newX;
+				targetView.frame	= newFrame;
+			}
+			else if (_currentDismissStyle == NKModalDismissingStyleToRight) {
+				CGFloat newX		= _originPoint.x + distance;
+				CGRect newFrame		= targetView.frame;
+				newFrame.origin.x	= newX;
+				targetView.frame	= newFrame;
+			}
+			else if (_currentDismissStyle == NKModalDismissingStyleToTop) {
+				CGFloat newY		= _originPoint.y - distance;
+				CGRect newFrame		= targetView.frame;
+				newFrame.origin.y	= newY;
+				targetView.frame	= newFrame;
+			}
+			else {
+				CGFloat newY		= _originPoint.y + distance;
+				CGRect newFrame		= targetView.frame;
+				newFrame.origin.y	= newY;
+				targetView.frame	= newFrame;
+			}
 		}
 		else if (state==UIGestureRecognizerStateEnded || state==UIGestureRecognizerStateCancelled || state==UIGestureRecognizerStateFailed) {
 //			if ([_contentViewController respondsToSelector:@selector(endFullscreenDragging:)]) [_contentViewController performSelector:@selector(endFullscreenDragging:) withObject:self];
 //			else if ([_contentView respondsToSelector:@selector(endFullscreenDragging:)]) [_contentView performSelector:@selector(endFullscreenDragging:) withObject:self];
 			
-			if (state==UIGestureRecognizerStateEnded && fabs(distance)>DISTANCE_THRESSHOLD) {
+			if (state==UIGestureRecognizerStateEnded && distance>DISTANCE_THRESSHOLD) {
 				if ([currentViewController respondsToSelector:@selector(endDraggingFromModalViewController:)]) [currentViewController performSelector:@selector(endDraggingFromModalViewController:) withObject:self];
 				
 //				self.isSlidedUp = distance<0;
@@ -1121,7 +1156,8 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 //					capturedScreenImageView.alpha = 0.0;
 					
 					CGRect newFrame = targetView.frame;
-					newFrame.origin.y = weakSelf.originY;
+					newFrame.origin.x = weakSelf.originPoint.x;
+					newFrame.origin.y = weakSelf.originPoint.y;
 					targetView.frame = newFrame;
 				} completion:^(BOOL finished) {
 					if (finished) {
