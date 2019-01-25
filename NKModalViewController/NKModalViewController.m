@@ -1118,25 +1118,25 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 			if (_currentDismissStyle == NKModalDismissingStyleToLeft) {
 				CGFloat newX		= _originPoint.x - distance;
 				CGRect newFrame		= targetView.frame;
-				newFrame.origin.x	= newX;
+				newFrame.origin.x	= MIN(newX, _originPoint.x);
 				targetView.frame	= newFrame;
 			}
 			else if (_currentDismissStyle == NKModalDismissingStyleToRight) {
 				CGFloat newX		= _originPoint.x + distance;
 				CGRect newFrame		= targetView.frame;
-				newFrame.origin.x	= newX;
+				newFrame.origin.x	= MAX(newX, _originPoint.x);
 				targetView.frame	= newFrame;
 			}
 			else if (_currentDismissStyle == NKModalDismissingStyleToTop) {
 				CGFloat newY		= _originPoint.y - distance;
 				CGRect newFrame		= targetView.frame;
-				newFrame.origin.y	= newY;
+				newFrame.origin.y	= MIN(newY, _originPoint.y);
 				targetView.frame	= newFrame;
 			}
 			else {
 				CGFloat newY		= _originPoint.y + distance;
 				CGRect newFrame		= targetView.frame;
-				newFrame.origin.y	= newY;
+				newFrame.origin.y	= MAX(newY, _originPoint.y);
 				targetView.frame	= newFrame;
 			}
 		}
