@@ -647,6 +647,7 @@ NSString * const MODAL_VIEW_CONTROLLER_DID_DISMISS				= @"MODAL_VIEW_CONTROLLER_
 
 - (void) updatePositionWithAnimated:(BOOL)animated {
 	CGRect rect = [self targetContentFrame];
+	if (CGRectEqualToRect(rect, _containerView.frame)) return;
 	[self updateBottomViewFrame];
 	
 	if (animated) {

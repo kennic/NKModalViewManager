@@ -190,7 +190,7 @@ NSString * const FULLSCREEN_VIEW_CONTROLLER_DID_DISMISS		= @"FULLSCREEN_VIEW_CON
 		[currentDevice beginGeneratingDeviceOrientationNotifications];
 //		[[UIApplication sharedApplication] setStatusBarOrientation:weakSelf.lastOrientation animated:NO];
 		[UIApplication sharedApplication].statusBarOrientation = weakSelf.lastOrientation;
-		[currentDevice setValue:[NSNumber numberWithInt:weakSelf.lastOrientation] forKey:@"orientation"];
+		[currentDevice setValue:[NSNumber numberWithInteger:weakSelf.lastOrientation] forKey:@"orientation"];
 		[currentDevice endGeneratingDeviceOrientationNotifications];
 		
 		[UIViewController attemptRotationToDeviceOrientation];
